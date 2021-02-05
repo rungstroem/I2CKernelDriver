@@ -6,3 +6,4 @@ To remove module from kernel run
 
 Kernel module programming guide
 https://tldp.org/LDP/lkmpg/2.6/lkmpg.pdf
+https://www.kernel.org/doc/html/latest/i2c/writing-clients.html
