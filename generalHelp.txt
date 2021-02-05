@@ -1,0 +1,8 @@
+To insert module in kernel run
+	insmod ./moduleName.ko
+
+To remove module from kernel run
+	rmmod moduleName
+
+Kernel module programming guide
+https://tldp.org/LDP/lkmpg/2.6/lkmpg.pdf
