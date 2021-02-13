@@ -17,7 +17,8 @@ static struct cdev c_dev;
 static dev_t dev;
 static struct class *deviceFileClass;
 
-//static int major;
+//static int major;		//Defines the driver
+//static int minor;		//Defines the device
 static int init_result;
 
 static int dev_open(struct inode*, struct file*);
@@ -98,6 +99,8 @@ static int dev_release(struct inode *inodep, struct file *filep){
 	return 0;
 }
 
+char buf[100];
+
 static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *offset){
 	int errors = 0;
 	char *message = "Some message";
@@ -109,6 +112,8 @@ static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *of
 }
 
 static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
+	int bytes = 0;
+	copy_from_user; 	//https://linux-kernel-labs.github.io/refs/heads/master/labs/device_drivers.html#laboratory-objectives - use this website
 	printk(KERN_INFO "I2CKernelModule is only readable for now");
 	return -EFAULT;
 }
