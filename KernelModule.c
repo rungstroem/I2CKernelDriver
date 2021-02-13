@@ -106,14 +106,16 @@ static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *of
 	char *message = "Some message";
 	int message_len = strlen(message);
 
-	errors = copy_to_user(buffer, message, message_len);
+	errors = copy_to_user(buffer, buf, message_len);
 
 	return errors == 0 ? message_len : -EFAULT;
 }
 
 static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
 	int bytes = 0;
-	copy_from_user; 	//https://linux-kernel-labs.github.io/refs/heads/master/labs/device_drivers.html#laboratory-objectives - use this website
-	printk(KERN_INFO "I2CKernelModule is only readable for now");
+	int errors = 0;
+	errors = copy_from_user(buffer, buf, bytes); 	//https://linux-kernel-labs.github.io/refs/heads/master/labs/device_drivers.html#laboratory-objectives - use this website
+	//printk(KERN_INFO "I2CKernelModule is only readable for now");
 	return -EFAULT;
+	//https://www.oreilly.com/library/view/linux-device-drivers/0596000081/ch03s08.html
 }
