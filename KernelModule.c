@@ -19,7 +19,8 @@ static struct class *deviceFileClass;
 
 //static int major;		//Defines the driver
 //static int minor;		//Defines the device
-static int init_result;
+int init_result;
+int deviceOpen = 0;
 
 static int dev_open(struct inode*, struct file*);
 static int dev_release(struct inode*, struct file*);
@@ -33,6 +34,7 @@ static struct file_operations fops={
 	.write = dev_write,
 	.release = dev_release,
 };
+//static struct miscdevices
 
 // Runs when module is inserted in kernel (insmod)
 int init_module(void){
@@ -90,6 +92,8 @@ void cleanup_module(void){
 }
 
 static int dev_open(struct inode *inodep, struct file *filep){
+	if(deviceOpen) return -EBUSY;
+
 	printk(KERN_INFO "I2CKernelModule opened");
 	return 0;
 }
@@ -99,23 +103,30 @@ static int dev_release(struct inode *inodep, struct file *filep){
 	return 0;
 }
 
-char buf[100];
+char buf[100] = "Hello Master Kenneth\n";
 
-static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *offset){
+static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){
+	printk(KERN_INFO "Read entered");
 	int errors = 0;
 	char *message = "Some message";
 	int message_len = strlen(message);
+	
+	int bufferSize = strlen(buf);
+	errors = copy_to_user(userBuffer, buf, bufferSize);
 
-	errors = copy_to_user(buffer, buf, message_len);
-
-	return errors == 0 ? message_len : -EFAULT;
+	return errors == 0 ? bufferSize : -EFAULT;
 }
 
-static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
-	int bytes = 0;
+static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
+	printk(KERN_INFO "write entered");
 	int errors = 0;
-	errors = copy_from_user(buffer, buf, bytes); 	//https://linux-kernel-labs.github.io/refs/heads/master/labs/device_drivers.html#laboratory-objectives - use this website
+	int bytesCopied = 0;
+	if(access_ok(userBuffer,3)){
+		errors = copy_from_user(buf, userBuffer, 3);
+	}
+
+	return errors == 0 ? bytesCopied : -EFAULT;
+	//https://linux-kernel-labs.github.io/refs/heads/master/labs/device_drivers.html#laboratory-objectives - use this website
 	//printk(KERN_INFO "I2CKernelModule is only readable for now");
-	return -EFAULT;
 	//https://www.oreilly.com/library/view/linux-device-drivers/0596000081/ch03s08.html
 }
