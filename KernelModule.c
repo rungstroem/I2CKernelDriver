@@ -9,10 +9,10 @@
 #include <asm/uaccess.h>
 #include <linux/version.h>
 #include <linux/types.h>
-
-#define DEVICE_NAME "I2CKernelModule"
 MODULE_LICENSE("GPL");
 
+#define DEVICE_NAME "I2CKernelModule"
+#define BUF_LEN 80
 static struct cdev c_dev;
 static dev_t dev;
 static struct class *deviceFileClass;
@@ -21,11 +21,47 @@ static struct class *deviceFileClass;
 //static int minor;		//Defines the device
 int init_result;
 int deviceOpen = 0;
+char Message[BUF_LEN];
+char *Message_Ptr;
 
-static int dev_open(struct inode*, struct file*);
-static int dev_release(struct inode*, struct file*);
-static ssize_t dev_read(struct file*, char*, size_t, loff_t*);
-static ssize_t dev_write(struct file*, const char*, size_t, loff_t*);
+static int dev_open(struct inode *inodep, struct file *filep){
+	if(deviceOpen) return -EBUSY;
+	deviceOpen++;
+	Message_Ptr = Message;
+	try_module_get(THIS_MODULE);
+	printk(KERN_INFO "I2CKernelModule opened");
+	return 0;
+}
+
+static int dev_release(struct inode *inodep, struct file *filep){
+	deviceOpen--;
+	module_put(THIS_MODULE);
+	printk(KERN_INFO "I2CKernelModule closed");
+	return 0;
+}
+
+static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){
+	printk(KERN_INFO "Read entered");
+	int bytes_read = 0;
+	if(*Message_Ptr == 0) return 0;
+
+	while(len && *Message_Ptr){
+		put_user(*(Message_Ptr++), userBuffer++);
+		len--;
+		bytes_read++;
+	}
+	return bytes_read;	
+}
+
+static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
+	printk(KERN_INFO "write entered");
+	int i;
+	for(i = 0; i < len && i < BUF_LEN; i++){
+		get_user(Message[i], userBuffer +i);
+	}
+	Message_Ptr = Message;
+	return i;
+}
 
 static struct file_operations fops={
 	.owner = THIS_MODULE,
@@ -89,44 +125,4 @@ void cleanup_module(void){
 	unregister_chrdev_region(dev, 1);
 
 	printk(KERN_INFO "I2CKernelModule removed\n");
-}
-
-static int dev_open(struct inode *inodep, struct file *filep){
-	if(deviceOpen) return -EBUSY;
-
-	printk(KERN_INFO "I2CKernelModule opened");
-	return 0;
-}
-
-static int dev_release(struct inode *inodep, struct file *filep){
-	printk(KERN_INFO "I2CKernelModule closed");
-	return 0;
-}
-
-char buf[100] = "Hello Master Kenneth\n";
-
-static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){
-	printk(KERN_INFO "Read entered");
-	int errors = 0;
-	char *message = "Some message";
-	int message_len = strlen(message);
-	
-	int bufferSize = strlen(buf);
-	errors = copy_to_user(userBuffer, buf, bufferSize);
-
-	return errors == 0 ? bufferSize : -EFAULT;
-}
-
-static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
-	printk(KERN_INFO "write entered");
-	int errors = 0;
-	int bytesCopied = 0;
-	if(access_ok(userBuffer,3)){
-		errors = copy_from_user(buf, userBuffer, 3);
-	}
-
-	return errors == 0 ? bytesCopied : -EFAULT;
-	//https://linux-kernel-labs.github.io/refs/heads/master/labs/device_drivers.html#laboratory-objectives - use this website
-	//printk(KERN_INFO "I2CKernelModule is only readable for now");
-	//https://www.oreilly.com/library/view/linux-device-drivers/0596000081/ch03s08.html
 }
