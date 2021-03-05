@@ -72,12 +72,13 @@ static struct i2c_board_info my_i2c_board_info = {
 	I2C_BOARD_INFO(SLAVE_DEVICE_NAME, SLAVE_DEVICE_ADDRESS)
 };
 
-int write_data(void){
-	
+int read_data(void){
+	Message = i2c_smbus_read_byte_data(my_i2c_client, 0x75);
+	Message_Ptr = Message;
 	return 0;
 }
 
-int read_data(void){
+int write_data(void){
 
 	return 0;
 }
@@ -123,6 +124,7 @@ static int dev_release(struct inode *inodep, struct file *filep){
 static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){
 	printk(KERN_INFO "Read entered");
 	int bytes_read = 0;
+	read_data();
 	if(*Message_Ptr == 0) return 0;
 
 	while(len && *Message_Ptr){
@@ -193,9 +195,6 @@ int init_module(void){
 	if(I2CReturnVal == -1){
 		return -1;
 	}
-	u8 id;
-	id = i2c_smbus_read_byte_data(my_i2c_client, 0x75);
-	printk("ID: 0x%x\n", id);
 
 	// This retuns if init executes okay. 
 	printk(KERN_INFO "I2CKernelModule inserted\n");
