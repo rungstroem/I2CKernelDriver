@@ -193,6 +193,9 @@ int init_module(void){
 	if(I2CReturnVal == -1){
 		return -1;
 	}
+	u8 id;
+	id = i2c_smbus_read_byte_data(my_i2c_client, 0x75);
+	printk("ID: 0x%x\n", id);
 
 	// This retuns if init executes okay. 
 	printk(KERN_INFO "I2CKernelModule inserted\n");
