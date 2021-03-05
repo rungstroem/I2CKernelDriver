@@ -73,7 +73,7 @@ static struct i2c_board_info my_i2c_board_info = {
 };
 
 int read_data(void){
-	Message = i2c_smbus_read_byte_data(my_i2c_client, 0x75);
+	Message[0] = (char)i2c_smbus_read_byte_data(my_i2c_client, 0x75);
 	Message_Ptr = Message;
 	return 0;
 }
