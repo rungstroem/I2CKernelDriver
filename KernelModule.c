@@ -61,7 +61,7 @@ MODULE_DEVICE_TABLE(i2c, my_id_table);
 // Hooks to manage devices
 static struct i2c_driver my_i2c_driver = {
 	.driver = {
-		.name = SLAVE_DEVICE_NAME,
+		.na2me = SLAVE_DEVICE_NAME,
 		.owner = THIS_MODULE,
 	},
 	.id_table = my_id_table,
@@ -92,7 +92,7 @@ int I2C_write_data(unsigned char *buf, unsigned int len){
 	return ret;
 }
 
-
+// I2C init and remove functions
 int initI2C(void){
 	int ret = -1;
 	
@@ -111,12 +111,13 @@ int initI2C(void){
 	}
 	return ret;
 }
-
 void unregisterI2C(void){
 	i2c_unregister_device(my_i2c_client);	// Removes my_i2c_client from adapter
-	i2c_del_adapter(my_i2c_adapter);		// Unregisters the adapter
-	i2c_del_driver(&my_i2c_driver);
-	printk(KERN_INFO "I2C diriver deleted");
+	printk(KERN_INFO "I2C_client removed");
+	i2c_del_adapter(my_i2c_adapter);		// Unregisters the I2C_adapter
+	printk(KERN_INFO "I2C_adapter deleted");
+	i2c_del_driver(&my_i2c_driver);		// Remove I2C_driver from kernel
+	printk(KERN_INFO "I2C driver deleted");
 }
 
 // #############################################################################################
@@ -139,7 +140,7 @@ static int dev_release(struct inode *inodep, struct file *filep){
 
 // Called when reading from the device [cat /dev/I2CDriver]
 static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){
-	printk(KERN_INFO "Read entered");
+	printk(KERN_INFO "Read from device Entered");
 	int bytesRead = 0;
 	
 	// Read from I2C
@@ -159,7 +160,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 
 // Called when writing to the device [echo > "command" /dev/I2CDriver]
 static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
-	printk(KERN_INFO "write entered");
+	printk(KERN_INFO "Write to device Entered");
 	int i;
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(Message[i], userBuffer +i);
