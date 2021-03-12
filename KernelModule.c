@@ -105,10 +105,9 @@ int initI2C(void){
 	return ret;
 }
 
-int unregisterI2C(){
+void unregisterI2C(void){
 	i2c_unregister_device(my_i2c_client);	// Removes my_i2c_client from adapter
 	i2c_del_adapter(my_i2c_adapter);		// Unregisters the adapter
-
 }
 
 // #############################################################################################
