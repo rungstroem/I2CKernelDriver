@@ -73,8 +73,10 @@ static struct i2c_board_info my_i2c_board_info = {
 };
 
 int read_data(void){
-	Message[0] = (char)i2c_smbus_read_byte_data(my_i2c_client, 0x75);
-	Message_Ptr = Message;
+	if(strcmp("getID", Message)){
+		Message[0] = (char)i2c_smbus_read_byte_data(my_i2c_client, 0x75);
+		Message_Ptr = Message;
+	}
 	return 0;
 }
 
@@ -101,6 +103,12 @@ int initI2C(void){
 		i2c_put_adapter(my_i2c_adapter);
 	}
 	return ret;
+}
+
+int unregisterI2C(){
+	i2c_unregister_device(my_i2c_client);	// Removes my_i2c_client from adapter
+	i2c_del_adapter(my_i2c_adapter);		// Unregisters the adapter
+
 }
 
 // #############################################################################################
@@ -203,6 +211,10 @@ int init_module(void){
 
 // Runs when module is removed from kernel (rmmod)
 void cleanup_module(void){
+	// Used to release the I2C interface
+	unregisterI2C();
+
+	// Used to remove driver from /dev
 	//unregister_chrdev(major, DEVICE_NAME);
 	cdev_del( &c_dev );
 	device_destroy( deviceFileClass, dev );
