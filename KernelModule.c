@@ -146,8 +146,11 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	int bytesRead = 0;
 	
 	// Read from I2C
-	I2C_read_special(Message);
-	Message_Ptr = Message;		//Sets the pointer to the start of the message
+	//I2C_read_special(Message);
+	//Message_Ptr = Message[0];		//Sets the pointer to the start of the message
+	
+	I2C_read_data(Message, 1);
+	Message_Ptr = Message[0];
 
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
 	
@@ -168,9 +171,9 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 		get_user(Message[i], userBuffer +i);
 	}
 	Message_Ptr = Message;
-	//unsigned char buf[2] = {0};
-	//buf[0] = 0x75;
-	//I2C_write_data(Message, 1);
+	unsigned char buf[2] = {0};
+	buf[0] = 0x75;
+	I2C_write_data(buf, 1);	//Write to the I2C device
 
 	return i;
 }
