@@ -73,7 +73,7 @@ static struct i2c_board_info my_i2c_board_info = {
 // I2C read and write commands
 int I2C_read_special(unsigned char *buf){
 	if(strcmp("getID", Message)){
-		buf = (char)i2c_smbus_read_byte_data(my_i2c_client, 0x75);
+		*buf = (char)i2c_smbus_read_byte_data(my_i2c_client, 0x75);
 		return 0;
 	}else{
 		return -1;	//Command didn't match
