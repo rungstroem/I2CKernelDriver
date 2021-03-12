@@ -61,7 +61,7 @@ MODULE_DEVICE_TABLE(i2c, my_id_table);
 // Hooks to manage devices
 static struct i2c_driver my_i2c_driver = {
 	.driver = {
-		.na2me = SLAVE_DEVICE_NAME,
+		.name = SLAVE_DEVICE_NAME,
 		.owner = THIS_MODULE,
 	},
 	.id_table = my_id_table,
