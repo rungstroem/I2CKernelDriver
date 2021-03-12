@@ -108,6 +108,8 @@ int initI2C(void){
 void unregisterI2C(void){
 	i2c_unregister_device(my_i2c_client);	// Removes my_i2c_client from adapter
 	i2c_del_adapter(my_i2c_adapter);		// Unregisters the adapter
+	i2c_del_driver(&my_i2c_driver);
+	printk(KERN_INFO "I2C diriver deleted");
 }
 
 // #############################################################################################
