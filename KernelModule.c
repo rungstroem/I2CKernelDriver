@@ -105,6 +105,11 @@ int initI2C(void){
 	return ret;
 }
 
+void unregisterI2C(void){
+	i2c_unregister_device(my_i2c_client);	// Removes my_i2c_client from adapter
+	i2c_del_adapter(my_i2c_adapter);		// Unregisters the adapter
+}
+
 // #############################################################################################
 // All below is reading and writing to the /dev/I2Cdriver file
 static int dev_open(struct inode *inodep, struct file *filep){
@@ -205,6 +210,10 @@ int init_module(void){
 
 // Runs when module is removed from kernel (rmmod)
 void cleanup_module(void){
+	// Used to release the I2C interface
+	unregisterI2C();
+
+	// Used to remove driver from /dev
 	//unregister_chrdev(major, DEVICE_NAME);
 	cdev_del( &c_dev );
 	device_destroy( deviceFileClass, dev );
