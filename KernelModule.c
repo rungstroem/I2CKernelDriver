@@ -72,7 +72,7 @@ static struct i2c_board_info my_i2c_board_info = {
 	I2C_BOARD_INFO(SLAVE_DEVICE_NAME, SLAVE_DEVICE_ADDRESS)
 };
 
-int read_data(void){
+int read_special(void){
 	if(strcmp("getID", Message)){
 		Message[0] = (char)i2c_smbus_read_byte_data(my_i2c_client, 0x75);
 		Message_Ptr = Message;
@@ -80,9 +80,16 @@ int read_data(void){
 	return 0;
 }
 
-int write_data(void){
+int I2C_read_data(unsigned char *outBuf, unsigned int len){
+	int ret = -1;
+	ret = i2c_master_recv(my_i2c_client, outBuf, len);
+	return ret;
+}
 
-	return 0;
+int I2C_write_data(unsigned char *buf, unsigned int len){
+	int ret = -1;
+	ret = i2c_master_send(my_i2c_client, buf, len);
+	return ret;
 }
 
 
@@ -130,20 +137,27 @@ static int dev_release(struct inode *inodep, struct file *filep){
 	return 0;
 }
 
+// Called when reading from the device [cat /dev/I2CDriver]
 static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){
 	printk(KERN_INFO "Read entered");
-	int bytes_read = 0;
-	read_data();
-	if(*Message_Ptr == 0) return 0;
+	int bytesRead = 0;
+	
+	// Read from I2C
+	I2C_read_data(Message, 1);
+	Message_Ptr = Message;		//Sets the pointer to the start of the message
 
+	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
+	
+	//Print message from I2C to user
 	while(len && *Message_Ptr){
 		put_user(*(Message_Ptr++), userBuffer++);
 		len--;
-		bytes_read++;
+		bytesRead++;
 	}
-	return bytes_read;	
+	return bytesRead;	
 }
 
+// Called when writing to the device [echo > "command" /dev/I2CDriver]
 static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
 	printk(KERN_INFO "write entered");
 	int i;
@@ -151,6 +165,10 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 		get_user(Message[i], userBuffer +i);
 	}
 	Message_Ptr = Message;
+	unsigned char buf[2] = {0};
+	buf[0] = 0x75;
+	I2C_write_data(Message, 1);
+
 	return i;
 }
 
