@@ -46,10 +46,7 @@ static struct i2c_adapter * my_i2c_adapter = NULL;
 static struct i2c_client * my_i2c_client = NULL;
 
 //#####################################################
-
-//#####################################################
 // I2C related code
-
 // Supported devices
 static struct i2c_device_id my_id_table[] = {
 	{ SLAVE_DEVICE_NAME, 0},
@@ -72,12 +69,15 @@ static struct i2c_board_info my_i2c_board_info = {
 	I2C_BOARD_INFO(SLAVE_DEVICE_NAME, SLAVE_DEVICE_ADDRESS)
 };
 
-int read_special(void){
+// ###############################################################################################
+// I2C read and write commands
+int I2C_read_special(unsigned char *buf){
 	if(strcmp("getID", Message)){
-		Message[0] = (char)i2c_smbus_read_byte_data(my_i2c_client, 0x75);
-		Message_Ptr = Message;
+		buf = (char)i2c_smbus_read_byte_data(my_i2c_client, 0x75);
+		return 0;
+	}else{
+		return -1;	//Command didn't match
 	}
-	return 0;
 }
 
 int I2C_read_data(unsigned char *outBuf, unsigned int len){
@@ -92,6 +92,7 @@ int I2C_write_data(unsigned char *buf, unsigned int len){
 	return ret;
 }
 
+// ###############################################################################################
 // I2C init and remove functions
 int initI2C(void){
 	int ret = -1;
@@ -119,6 +120,7 @@ void unregisterI2C(void){
 	i2c_del_driver(&my_i2c_driver);		// Remove I2C_driver from kernel
 	printk(KERN_INFO "I2C driver deleted");
 }
+// ############################################################################################
 
 // #############################################################################################
 // All below is reading and writing to the /dev/I2Cdriver file
@@ -139,13 +141,14 @@ static int dev_release(struct inode *inodep, struct file *filep){
 }
 
 // Called when reading from the device [cat /dev/I2CDriver]
-static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){
+static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){	//Len is the size of the user buffer, loff_t is the index in the user buffer
 	printk(KERN_INFO "Read from device Entered");
 	int bytesRead = 0;
 	
 	// Read from I2C
-	I2C_read_data(Message, 1);
-	Message_Ptr = Message;		//Sets the pointer to the start of the message
+	char buf[2] = {0};
+	I2C_read_special(buf);
+	Message_Ptr = buf;		//Sets the pointer to the start of the message
 
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
 	
