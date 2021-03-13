@@ -104,7 +104,7 @@ unsigned char commandIntMPU(char *buf){
 	} else if(strcmp(buf, "GYRZL")){
 		return(0x48);
 	} else{
-		return -1;
+		return buf;
 	}
 
 }
@@ -206,14 +206,17 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 // Called when writing to the device [echo > "command" /dev/I2CDriver]
 static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
 	printk(KERN_INFO "Write to device Entered");
+	// Get message from userspace
 	int i;
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(Message[i], userBuffer +i);
 	}
 	Message_Ptr = Message;
-	unsigned char buf[2] = {0};
-	buf[0] = 0x75;
-	I2C_write_data(buf, 1);	//Write to the I2C device
+	
+	// Send command to I2C
+	unsigned char cmd = 0x00;
+	cmd = commandIntMPU(Message);
+	I2C_write_data(cmd, 1);	//Write to the I2C device
 
 	return i;
 }
