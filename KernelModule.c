@@ -182,9 +182,10 @@ static int dev_release(struct inode *inodep, struct file *filep){
 
 // Called when reading from the device [cat /dev/I2CDriver]
 static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){	//Len is the size of the user buffer, loff_t is the index in the user buffer
+	int bytesRead;
+
 	printk(KERN_INFO "Read from device Entered");
-	int bytesRead = 0;
-	
+
 	// Read from I2C
 	//I2C_read_special(Message);
 	//Message_Ptr = Message[0];		//Sets the pointer to the start of the message
@@ -193,7 +194,8 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	Message_Ptr = Message;
 
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
-	
+
+	bytesRead = 0;
 	//Print message from I2C to user
 	while(len && *Message_Ptr){
 		put_user(*(Message_Ptr++), userBuffer++);
@@ -205,16 +207,18 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 
 // Called when writing to the device [echo > "command" /dev/I2CDriver]
 static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
-	printk(KERN_INFO "Write to device Entered");
-	// Get message from userspace
 	int i;
+	unsigned char cmd;
+	printk(KERN_INFO "Write to device Entered");
+	
+	// Get message from userspace
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(Message[i], userBuffer +i);
 	}
 	Message_Ptr = Message;
 	
 	// Send command to I2C
-	unsigned char cmd = 0x00;
+	cmd = 0x00;
 	cmd = commandIntMPU(Message);
 	Message[0] = cmd;
 	//I2C_write_data(cmd, 1);	//Write to the I2C device
@@ -232,7 +236,8 @@ static struct file_operations fops={
 
 // Runs when module is inserted in kernel (insmod)
 int init_module(void){
-	
+	int I2CReturnVal;
+
 	// Allocate device nr.
 	init_result = alloc_chrdev_region(&dev, 0, 1, DRIVER_NAME);
 	if(init_result < 0){
@@ -268,7 +273,7 @@ int init_module(void){
 	}
 	
 	// Initialize I2C adaptor and client
-	int I2CReturnVal = initI2C();
+	I2CReturnVal = initI2C();
 	if(I2CReturnVal == -1){
 		return -1;
 	}
