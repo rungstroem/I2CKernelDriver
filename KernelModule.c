@@ -72,7 +72,7 @@ static struct i2c_board_info my_i2c_board_info = {
 // ###############################################################################################
 // Command interpreter
 unsigned char commandIntMPU(char *buf){
-	// This translates commands into HEX commands that the MPU understands
+	// This translates commands into HEX codes that the MPU understands
 	if(strcmp(buf, "getID")){
 		return(0x75);
 	} else if(strcmp(buf, "TEMPH")){
@@ -189,7 +189,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	//I2C_read_special(Message);
 	//Message_Ptr = Message[0];		//Sets the pointer to the start of the message
 	
-	I2C_read_data(Message, 1);
+	//I2C_read_data(Message, 1);
 	Message_Ptr = Message;
 
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
@@ -216,7 +216,8 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	// Send command to I2C
 	unsigned char cmd = 0x00;
 	cmd = commandIntMPU(Message);
-	I2C_write_data(cmd, 1);	//Write to the I2C device
+	Message[0] = cmd;
+	//I2C_write_data(cmd, 1);	//Write to the I2C device
 
 	return i;
 }
