@@ -197,7 +197,11 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		I2C_read_data(Message,1);
 		Message_Ptr = Message;
 	}*/
-	I2C_read_data(Message, 1);
+	unsigned char data;
+	unsigned char *D;
+	D = &data;
+	I2C_read_data(D, 1);
+	Message[1] = data;
 	Message_Ptr = Message;
 
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
