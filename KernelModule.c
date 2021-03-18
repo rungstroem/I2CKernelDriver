@@ -24,7 +24,7 @@ MODULE_DESCRIPTION("A driver for I2C");
 
 //#####################################################
 // Global variables for device_file - Reading and writing to /dev/I2CDriver
-#define BUF_LEN 80
+#define BUF_LEN 6
 
 static struct cdev c_dev;
 static dev_t dev;
