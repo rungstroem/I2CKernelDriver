@@ -230,7 +230,9 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 		//Message = "Command not identified";
 		printk(KERN_INFO "Command not identified");
 	}else{
-		I2C_write_data(cmd, 1);		//Write command to I2C device
+		unsigned char *C;
+		C = &cmd;
+		I2C_write_data(C, 1);		//Write command to I2C device
 	}
 
 	return i;
