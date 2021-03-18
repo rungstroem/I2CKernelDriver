@@ -184,6 +184,11 @@ static int dev_release(struct inode *inodep, struct file *filep){
 // Called when reading from the device [cat /dev/I2CDriver]
 static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){	//Len is the size of the user buffer, loff_t is the index in the user buffer
 	int bytesRead;
+	unsigned char data;
+	unsigned char *D;
+
+	//Just a test
+	int test = 0;
 
 	printk(KERN_INFO "Read from device Entered");
 
@@ -197,11 +202,12 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		I2C_read_data(Message,1);
 		Message_Ptr = Message;
 	}*/
-	unsigned char data;
-	unsigned char *D;
-	D = &data;
-	I2C_read_data(D, 1);
-	Message[1] = data;
+	if(test == 0){
+		D = &data;
+		I2C_read_data(D, 1);
+		Message[1] = data;
+		test = 1;
+	}
 	Message_Ptr = Message;
 
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
