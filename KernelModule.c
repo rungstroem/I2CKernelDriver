@@ -191,8 +191,12 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	//I2C_read_special(Message);
 	//Message_Ptr = Message[0];		//Sets the pointer to the start of the message
 	
-	//I2C_read_data(Message, 1);
-	Message_Ptr = Message;
+	if(!strcmp(Message, "Command not identified")){
+		Message_Ptr = Message;
+	}else{
+		I2C_read_data(Message,1);
+		Message_Ptr = Message;
+	}
 
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
 
@@ -220,8 +224,12 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 
 	// Send command to I2C
 	cmd = commandIntMPU(Message);
-	Message[0] = cmd;
-	//I2C_write_data(cmd, 1);	//Write to the I2C device
+	if(cmd == "0x00"){
+		Message = "Command not identified";
+		printk(KERN_INFO "Command not identified");
+	}else{
+		I2C_write_data(cmd, 1);		//Write command to I2C device
+	}
 
 	return i;
 }
