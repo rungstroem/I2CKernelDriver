@@ -10,6 +10,7 @@
 #include <linux/version.h>
 #include <linux/types.h>
 #include <linux/i2c.h>
+#include <linux/delay.h>	// Used for msleep() command
 
 //#####################################################
 // Author and license
@@ -187,9 +188,6 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	unsigned char data;
 	unsigned char *D;
 
-	//Just a test
-	int test = 0;
-
 	printk(KERN_INFO "Read from device Entered");
 
 	// Read from I2C
@@ -202,12 +200,10 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		I2C_read_data(Message,1);
 		Message_Ptr = Message;
 	}*/
-	if(test == 0){
-		D = &data;
-		I2C_read_data(D, 1);
-		Message[1] = data;
-		test = 1;
-	}
+	D = &data;
+	I2C_read_data(D, 1);
+	msleep(5);
+	Message[1] = data;
 	Message_Ptr = Message;
 
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
