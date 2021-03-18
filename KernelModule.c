@@ -104,7 +104,7 @@ unsigned char commandIntMPU(char *buf){
 	} else if(!strcmp(buf, "GYRZL")){
 		return(0x48);
 	} else{
-		return buf;
+		return(0x00);
 	}
 
 }
