@@ -75,7 +75,7 @@ unsigned char commandIntMPU(char *buf){
 	// This translates commands into HEX codes that the MPU understands
 	if(!strcmp(buf, "getID")){
 		return(0x75);
-	} else if(!strcmp(buf, "TEMPH")){
+	} else if(!strcmp(buf, "TEMPH\0")){
 		return(0x41);
 	} else if(!strcmp(buf, "TEMPL")){
 		return(0x42);
@@ -104,7 +104,7 @@ unsigned char commandIntMPU(char *buf){
 	} else if(!strcmp(buf, "GYRZL")){
 		return(0x48);
 	} else{
-		return(0x00);	//Return NULL if no command matches
+		return(0x49);	//Return NULL if no command matches
 	}
 
 }
@@ -215,7 +215,6 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(Message[i], userBuffer +i);
 	}
-	Message[i+1] = '\0';
 	Message_Ptr = Message;
 
 	// Send command to I2C
