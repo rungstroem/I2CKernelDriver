@@ -214,7 +214,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	
 	// Get message from userspace
 	for(i = 0; i < len && i < BUF_LEN; i++){
-		get_user(Message[i], userBuffer +i);		// Echo inserts \n at the end!!
+		get_user(Message[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
 	Message_Ptr = Message;
 
