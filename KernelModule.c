@@ -24,7 +24,7 @@ MODULE_DESCRIPTION("A driver for I2C");
 
 //#####################################################
 // Global variables for device_file - Reading and writing to /dev/I2CDriver
-#define BUF_LEN 6
+#define BUF_LEN 80
 
 static struct cdev c_dev;
 static dev_t dev;
@@ -73,38 +73,39 @@ static struct i2c_board_info my_i2c_board_info = {
 // Command interpreter
 unsigned char commandIntMPU(char *buf){
 	// This translates commands into HEX codes that the MPU understands
-	if(!strcmp(buf, "getID")){
+	// \n is needed because "echo cmd > /dev/I2CDriver" inserts \n at the end
+	if(!strcmp(buf, "getID\n")){
 		return(0x75);
 	} else if(!strcmp(buf, "TEMPH\n")){
 		return(0x41);
-	} else if(!strcmp(buf, "TEMPL")){
+	} else if(!strcmp(buf, "TEMPL\n")){
 		return(0x42);
-	} else if(!strcmp(buf, "ACCXH")){
+	} else if(!strcmp(buf, "ACCXH\n")){
 		return(0x3B);
-	} else if(!strcmp(buf, "ACCXL")){
+	} else if(!strcmp(buf, "ACCXL\n")){
 		return(0x3C);
-	} else if(!strcmp(buf, "ACCYH")){
+	} else if(!strcmp(buf, "ACCYH\n")){
 		return(0x3D);
-	} else if(!strcmp(buf, "ACCYL")){
+	} else if(!strcmp(buf, "ACCYL\n")){
 		return(0x3E);
-	} else if(!strcmp(buf, "ACCZH")){
+	} else if(!strcmp(buf, "ACCZH\n")){
 		return(0x3F);
-	} else if(!strcmp(buf, "ACCZL")){
+	} else if(!strcmp(buf, "ACCZL\n")){
 		return(0x40);
-	} else if(!strcmp(buf, "GYRXH")){
+	} else if(!strcmp(buf, "GYRXH\n")){
 		return(0x43);
-	} else if(!strcmp(buf, "GYRXL")){
+	} else if(!strcmp(buf, "GYRXL\n")){
 		return(0x44);
-	} else if(!strcmp(buf, "GYRYH")){
+	} else if(!strcmp(buf, "GYRYH\n")){
 		return(0x45);
-	} else if(!strcmp(buf, "GYRYL")){
+	} else if(!strcmp(buf, "GYRYL\n")){
 		return(0x46);
-	} else if(!strcmp(buf, "GYRZH")){
+	} else if(!strcmp(buf, "GYRZH\n")){
 		return(0x47);
-	} else if(!strcmp(buf, "GYRZL")){
+	} else if(!strcmp(buf, "GYRZL\n")){
 		return(0x48);
 	} else{
-		return(0x49);	//Return NULL if no command matches
+		return(0x00);	//Return NULL if no command matches
 	}
 
 }
@@ -213,7 +214,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	
 	// Get message from userspace
 	for(i = 0; i < len && i < BUF_LEN; i++){
-		get_user(Message[i], userBuffer +i);
+		get_user(Message[i], userBuffer +i);		// Echo inserts \n at the end!!
 	}
 	Message_Ptr = Message;
 
