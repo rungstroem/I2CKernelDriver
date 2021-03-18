@@ -104,7 +104,7 @@ unsigned char commandIntMPU(char *buf){
 	} else if(!strcmp(buf, "GYRZL")){
 		return(0x48);
 	} else{
-		return(0x48);
+		return(0x00);	//Return NULL if no command matches
 	}
 
 }
@@ -215,8 +215,9 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(Message[i], userBuffer +i);
 	}
+	Message[i+1] = '\0';
 	Message_Ptr = Message;
-	
+
 	// Send command to I2C
 	cmd = commandIntMPU(Message);
 	Message[0] = cmd;
