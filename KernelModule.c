@@ -24,7 +24,7 @@ MODULE_DESCRIPTION("A driver for I2C");
 
 //#####################################################
 // Global variables for device_file - Reading and writing to /dev/I2CDriver
-#define BUF_LEN 5
+#define BUF_LEN 6
 
 static struct cdev c_dev;
 static dev_t dev;
@@ -75,7 +75,7 @@ unsigned char commandIntMPU(char *buf){
 	// This translates commands into HEX codes that the MPU understands
 	if(!strcmp(buf, "getID")){
 		return(0x75);
-	} else if(!strcmp(buf, "TEMPH\0")){
+	} else if(!strcmp(buf, "TEMPH\n")){
 		return(0x41);
 	} else if(!strcmp(buf, "TEMPL")){
 		return(0x42);
