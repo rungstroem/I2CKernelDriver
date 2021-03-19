@@ -240,11 +240,9 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	for(j = 0; j<5; j++){	//This should be replaced its slow
-		command[j] = inMessage[j];
-	}
-	command[6] = '\n';
-	data = inMessage[6];
+	strcpy(command, inMessage);
+	command[7] = 0x00;
+	command[5] = '\n';
 
 	// Send command to I2C
 	cmd = commandIntMPU(command);
