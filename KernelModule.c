@@ -185,10 +185,11 @@ static int dev_release(struct inode *inodep, struct file *filep){
 
 // Called when reading from the device [cat /dev/I2CDriver]
 static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){	//Len is the size of the user buffer, loff_t is the index in the user buffer
+	// C90 requires declaration before code
 	int bytesRead;
 	unsigned char data;
 	unsigned char *D;
-
+	//Print for debugging
 	printk(KERN_INFO "Read from device Entered");
 
 	// Read from I2C
