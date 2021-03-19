@@ -231,7 +231,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	unsigned char cmd;
 	unsigned char *C;
 	char inMessage[8] = {0x00};
-	char command[6];
+	char command[6] = {0x00};
 	unsigned char data;
 	// Print for debugging
 	printk(KERN_INFO "Write to device Entered");
@@ -240,11 +240,11 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	for(j = 0; j>5; j++){
+	for(j = 0; j<5; j++){	//This should be replaced its slow
 		command[j] = inMessage[j];
 	}
 	command[5] = '\n';
-	data = inMessage[7];
+	data = inMessage[6];
 
 	// Send command to I2C
 	cmd = commandIntMPU(command);
