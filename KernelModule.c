@@ -123,15 +123,10 @@ int I2C_read_special(unsigned char *buf){
 }
 
 void I2C_read_data(unsigned char *outBuf, unsigned int len){
-	//int ret = -1;
-	//ret = i2c_master_recv(my_i2c_client, outBuf, len);
-	//msleep(5);	//5mS delay for read command to finish
 	while(i2c_master_recv(my_i2c_client, outBuf, len) < 0){
 		//Wait for i2c_master_receive to return positive value
 	}
 	return;
-
-	//return ret;
 }
 
 int I2C_write_data(unsigned char *buf, unsigned int len){
@@ -203,7 +198,11 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	if(cmdIdentified){
 		D = &data;
 		I2C_read_data(D,1);
-		Message[0] = data;
+		if(data == 0x00){
+			Message[0] = '0';
+		}else{
+			Message[0] = data;
+		}
 		Message_Ptr = Message;
 	}else{
 		strcpy(Message, "command not identified");
