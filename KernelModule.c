@@ -203,7 +203,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	D = &data;
 	I2C_read_data(D, 1);
 	msleep(5);
-	Message[1] = data;
+	Message[0] = data;
 	Message_Ptr = Message;
 
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
@@ -233,7 +233,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	// Send command to I2C
 	cmd = commandIntMPU(Message);
 	if(cmd == 0x00){
-		//Message = "Command not identified";
+		Message = "Command not identified";
 		printk(KERN_INFO "Command not identified");
 	}else{
 		unsigned char *C;
