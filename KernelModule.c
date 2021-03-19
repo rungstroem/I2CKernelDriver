@@ -123,11 +123,10 @@ int I2C_read_special(unsigned char *buf){
 }
 
 void I2C_read_data(unsigned char *outBuf, unsigned int len){
-	//while(i2c_master_recv(my_i2c_client, outBuf, len) < 1){
+	while(i2c_master_recv(my_i2c_client, outBuf, len) < 1){
 		//Wait for i2c_master_receive to return positive value
-	//}
-	//return;
-	i2c_master_recv(my_i2c_client, outBuf, len);
+	}
+	return;
 }
 
 int I2C_write_data(unsigned char *buf, unsigned int len){
@@ -190,6 +189,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	int bytesRead;
 	unsigned char data;
 	unsigned char *D;
+	char outMessage;
 	//Print for debugging
 	printk(KERN_INFO "Read from device Entered");
 
@@ -201,11 +201,11 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		D = &data;
 		I2C_read_data(D,1);
 		if(data == 0x00){
-			Message[0] = '0';
+			outMessage = '0';
 		}else{
-			Message[0] = data;
+			outMessage = data;
 		}
-		Message_Ptr = Message;
+		Message_Ptr = outMessage;
 	}else{
 		strcpy(Message, "command not identified");
 		Message_Ptr = Message;
