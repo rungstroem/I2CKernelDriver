@@ -229,7 +229,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	int i;
 	unsigned char cmd;
 	unsigned char *C;
-	char inMessage[8] = {0x00};
+	char inMessage[8];
 	// Print for debugging
 	printk(KERN_INFO "Write to device Entered");
 	
