@@ -227,6 +227,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
 	// C90 requires declaration before code.
 	int i;
+	int j;
 	unsigned char cmd;
 	unsigned char *C;
 	char inMessage[8] = {0x00};
@@ -239,8 +240,8 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	for(int j = 0; j>5; j++){
-		command[i] = inMessage[i];
+	for(j = 0; j>5; j++){
+		command[j] = inMessage[j];
 	}
 	command[5] = '\n';
 	data = inMessage[7];
