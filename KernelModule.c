@@ -194,9 +194,9 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	printk(KERN_INFO "Read from device Entered");
 
 	// Read from I2C
-	I2C_read_special(Message);
-	Message_Ptr = Message[0];		//Sets the pointer to the start of the message
-	/*
+	//I2C_read_special(Message);
+	//Message_Ptr = Message[0];		//Sets the pointer to the start of the message
+	
 	if(cmdIdentified){
 		D = &data;
 		I2C_read_data(D,1);
@@ -210,7 +210,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		strcpy(Message, "command not identified");
 		Message_Ptr = Message;
 	}
-	*/
+	
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
 
 	bytesRead = 0;
