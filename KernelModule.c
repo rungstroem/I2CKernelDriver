@@ -233,7 +233,6 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	// Send command to I2C
 	cmd = commandIntMPU(Message);
 	if(cmd == 0x00){
-		command
 		Message = "Command not identified";
 		printk(KERN_INFO "Command not identified");
 	}else{
