@@ -243,7 +243,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(j = 0; j<5; j++){	//This should be replaced its slow
 		command[j] = inMessage[j];
 	}
-	command[5] = '\n';
+	command[6] = '\n';
 	data = inMessage[6];
 
 	// Send command to I2C
