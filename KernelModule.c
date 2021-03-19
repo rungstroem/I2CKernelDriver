@@ -223,19 +223,22 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 
 // Called when writing to the device [echo > "command" /dev/I2CDriver]
 static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
+	// C90 requires declaration before code.
 	int i;
 	unsigned char cmd;
 	unsigned char *C;
+	char inMessage[8] = {0x00};
+	// Print for debugging
 	printk(KERN_INFO "Write to device Entered");
 	
 	// Get message from userspace
 	for(i = 0; i < len && i < BUF_LEN; i++){
-		get_user(Message[i], userBuffer +i);		// Echo inserts \n at the end!
+		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	Message_Ptr = Message;
+	//Message_Ptr = Message;
 
 	// Send command to I2C
-	cmd = commandIntMPU(Message);
+	cmd = commandIntMPU(inMessage);
 	if(cmd == 0x00){
 		cmdIdentified = false;
 		printk(KERN_INFO "Command not identified");
