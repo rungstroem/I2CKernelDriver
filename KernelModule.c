@@ -34,7 +34,7 @@ int init_result;
 int deviceOpen = 0;
 char Message[BUF_LEN];
 char *Message_Ptr;
-
+bool cmdIdentified;
 //#####################################################
 
 //#####################################################
@@ -125,6 +125,7 @@ int I2C_read_special(unsigned char *buf){
 int I2C_read_data(unsigned char *outBuf, unsigned int len){
 	int ret = -1;
 	ret = i2c_master_recv(my_i2c_client, outBuf, len);
+	msleep(5);	//5mS delay for read command to finish
 	return ret;
 }
 
@@ -193,18 +194,19 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	// Read from I2C
 	//I2C_read_special(Message);
 	//Message_Ptr = Message[0];		//Sets the pointer to the start of the message
-	/*
-	if(!strcmp(Message, "Command not identified")){
-		Message_Ptr = Message;
+	
+	if(cmdIdentified){
+		D = &data;
+		I2C_read_data(D,1);
+		Message_Ptr = &data;
 	}else{
-		I2C_read_data(Message,1);
+		strcpy(Message, "command not identified");
 		Message_Ptr = Message;
-	}*/
-	D = &data;
-	I2C_read_data(D, 1);
-	msleep(5);
-	Message[0] = data;
-	Message_Ptr = Message;
+	}
+	//D = &data;
+	//I2C_read_data(D, 1);
+	//Message[0] = data;
+	//Message_Ptr = Message;
 
 	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
 
@@ -222,6 +224,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
 	int i;
 	unsigned char cmd;
+	unsigned char *C;
 	printk(KERN_INFO "Write to device Entered");
 	
 	// Get message from userspace
@@ -233,10 +236,10 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	// Send command to I2C
 	cmd = commandIntMPU(Message);
 	if(cmd == 0x00){
-		Message = "Command not identified";
+		cmdIdentified = false;
 		printk(KERN_INFO "Command not identified");
 	}else{
-		unsigned char *C;
+		cmdIdentified = true;
 		C = &cmd;
 		I2C_write_data(C, 1);		//Write command to I2C device
 	}
