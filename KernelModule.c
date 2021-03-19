@@ -198,7 +198,8 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	if(cmdIdentified){
 		D = &data;
 		I2C_read_data(D,1);
-		Message_Ptr = &data;
+		Message[1] = data;
+		Message_Ptr = Message;
 	}else{
 		strcpy(Message, "command not identified");
 		Message_Ptr = Message;
