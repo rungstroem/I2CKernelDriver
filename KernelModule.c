@@ -123,7 +123,7 @@ int I2C_read_special(unsigned char *buf){
 }
 
 void I2C_read_data(unsigned char *outBuf, unsigned int len){
-	while(i2c_master_recv(my_i2c_client, outBuf, len) < 0){
+	while(i2c_master_recv(my_i2c_client, outBuf, len) < 1){
 		//Wait for i2c_master_receive to return positive value
 	}
 	return;
@@ -235,7 +235,6 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	//Message_Ptr = Message;
 
 	// Send command to I2C
 	cmd = commandIntMPU(inMessage);
