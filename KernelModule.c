@@ -227,9 +227,9 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
 	// C90 requires declaration before code.
 	int i;
-	int j;
 	unsigned char cmd;
 	unsigned char *C;
+	unsigned char cmdData[2];
 	char inMessage[8] = {0x00};
 	char command[8] = {0x00};
 	unsigned char data;
@@ -243,16 +243,24 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	strcpy(command, inMessage);
 	command[7] = 0x00;
 	command[5] = '\n';
-
+	data = inMessage[6];
 	// Send command to I2C
 	cmd = commandIntMPU(command);
 	if(cmd == 0x00){
 		cmdIdentified = false;
 		printk(KERN_INFO "Command not identified");
 	}else{
-		cmdIdentified = true;
-		C = &cmd;
-		I2C_write_data(C, 1);		//Write command to I2C device
+		if(data == 0x00){
+			C = &cmd;
+			cmdIdentified = true;
+			I2C_write_data(C,1);
+		}else if(data != 0x00){
+			cmdIdentified = true;
+			cmdData[0] = cmd;
+			cmdData[1] = data;
+			C = cmdData;
+			I2C_write_data(C,2);
+		}
 	}
 
 	return i;
