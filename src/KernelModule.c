@@ -175,7 +175,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 			I2C_write_data(C, 1);
 		}else{
 			I2C_write_data(C,1);
-			I2C_write_data(data, dataRead);
+			//I2C_write_data(data, dataRead);
 		}
 	}
 	return i;
