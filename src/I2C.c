@@ -12,8 +12,6 @@ static struct i2c_device_id my_id_table[] = {
 	{},	//C90 requires termination with 0 entry...
 };
 
-MODULE_DEVICE_TABLE(i2c, my_id_table);
-
 static struct i2c_driver my_i2c_driver = {
 	.driver = {
 		.name = SLAVE_DEVICE_NAME,
