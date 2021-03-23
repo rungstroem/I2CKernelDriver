@@ -11,7 +11,7 @@
 static struct i2c_device_id my_id_table[] = {
 	{SLAVE_DEVICE_NAME, 0},
 	{},	//C90 requires termination with 0 entry...
-}
+};
 
 MODULE_DEVICE_TABLE(i2c, my_id_table);
 
