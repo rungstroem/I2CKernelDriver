@@ -32,7 +32,6 @@ MODULE_DESCRIPTION("A driver for an I2C enabled robot");
 static struct cdev c_dev;
 static dev_t dev;
 static struct class *deviceFileClass;
-int init_result;
 int deviceOpen = 0;
 char Message[BUF_LEN];
 char *Message_Ptr;
@@ -144,47 +143,22 @@ static struct file_operations fops={
 	.release = dev_release,
 };
 
+int init_device_file(void);
+
 // Runs when module is inserted in kernel (insmod)
 int init_module(void){
 	int I2CReturnVal;
+	int deviceFileVal;
 
-	// Allocate device nr.
-	init_result = alloc_chrdev_region(&dev, 0, 1, DRIVER_NAME);
-	if(init_result < 0){
-		printk( KERN_ALERT "I2CKernelModule registration failed\n" );
-		return -1;
-	}
-
-	// Register module in /dev/
-	if( (deviceFileClass = class_create(THIS_MODULE, "chardev")) == NULL ){
-		printk(KERN_ALERT "Class creation failed\n");
-		unregister_chrdev_region(dev, 1);
-		return -1;
-	}
-	
-	//Create device file
-	if( device_create(deviceFileClass, NULL, dev, NULL, "I2CDriver") == NULL ){
-		printk(KERN_ALERT "Device creation failed");
-		class_destroy(deviceFileClass);
-		unregister_chrdev_region(dev,1);
-		return -1;
-	}
-
-	// Initialize device file
-	cdev_init(&c_dev, &fops);
-
-	// Register device to kernel
-	if( cdev_add( &c_dev, dev, 1) == -1){
-		printk(KERN_ALERT "Device addition failed");
-		device_destroy( deviceFileClass, dev );
-		class_destroy( deviceFileClass );
-		unregister_chrdev_region(dev, 1);
-		return -1;
-	}
-	
 	// Initialize I2C adaptor and client
 	I2CReturnVal = initI2C();
 	if(I2CReturnVal == -1){
+		return -1;
+	}
+
+	// Initialize the device file
+	deviceFileVal = init_device_file();
+	if(deviceFileVal == -1){
 		return -1;
 	}
 
@@ -206,4 +180,42 @@ void cleanup_module(void){
 	unregister_chrdev_region(dev, 1);
 
 	printk(KERN_INFO "I2CKernelModule removed\n");
+}
+
+int init_device_file(void){
+	// Allocate device nr.
+	if( (alloc_chrdev_region(&dev, 0, 1, DRIVER_NAME)) < 0 ){
+		printk( KERN_ALERT "I2CKernelModule registration failed\n" );
+		return -1;
+	}
+
+	// Register module in /dev/
+	if( (deviceFileClass = class_create(THIS_MODULE, "chardev")) == NULL ){
+		printk(KERN_ALERT "Class creation failed\n");
+		unregister_chrdev_region(dev, 1);
+		return -1;
+	}
+	
+	//Create device file
+	if( (device_create(deviceFileClass, NULL, dev, NULL, "I2CDriver")) == NULL ){
+		printk(KERN_ALERT "Device creation failed");
+		class_destroy(deviceFileClass);
+		unregister_chrdev_region(dev,1);
+		return -1;
+	}
+
+	// Initialize device file
+	cdev_init(&c_dev, &fops);
+
+	// Register device to kernel
+	if( (cdev_add( &c_dev, dev, 1)) == -1){
+		printk(KERN_ALERT "Device addition failed");
+		device_destroy( deviceFileClass, dev );
+		class_destroy( deviceFileClass );
+		unregister_chrdev_region(dev, 1);
+		return -1;
+	}
+	// If everything went well - return 0
+	return 0;
+
 }
