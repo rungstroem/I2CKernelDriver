@@ -216,12 +216,12 @@ static struct file_operations fops={
 
 // Runs when module is inserted in kernel (insmod)
 int init_module(void){	
-	// Initialize I2C adaptor and client
-	if(initI2C() < 0){
-		return -1;
-	}
 	// Initializes the device file
 	if(initDeviceFile() < 0){
+		return -1;
+	}
+	// Initialize I2C adaptor and client
+	if(initI2C() < 0){
 		return -1;
 	}
 	// This retuns if init executes okay. 
