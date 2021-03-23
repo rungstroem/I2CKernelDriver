@@ -7,10 +7,10 @@ static struct i2c_client *my_i2c_client = NULL;
 
 // I2C struct for general device infoemation
 // Supported devices
-static struct i2c_device_id my_id_table[] = {
-	{SLAVE_DEVICE_NAME, 0},
-	{},	//C90 requires termination with 0 entry...
-};
+//static struct i2c_device_id my_id_table[] = {
+//	{SLAVE_DEVICE_NAME, 0},
+//	{},	//C90 requires termination with 0 entry...
+//};
 
 static struct i2c_driver my_i2c_driver = {
 	.driver = {
@@ -19,6 +19,8 @@ static struct i2c_driver my_i2c_driver = {
 	},
 	.id_table = my_id_table,
 };
+
+//MODULE_DEVICE_TABLE(i2c,my_id_table);
 
 // Hooks to manage devices
 static struct i2c_board_info my_i2c_board_info = {

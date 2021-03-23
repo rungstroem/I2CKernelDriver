@@ -19,7 +19,6 @@
 MODULE_AUTHOR("Kenneth R Larsen");
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("A driver for an I2C enabled robot");
-MODULE_DEVICE_TABLE(i2c, my_id_table);
 
 #define DEVICE_NAME "I2CKernelModule"
 #define DRIVER_NAME "I2CDriver"
