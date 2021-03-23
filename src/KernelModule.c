@@ -74,13 +74,8 @@ static struct i2c_board_info my_i2c_board_info = {
 
 // ###############################################################################################
 // I2C read and write commands
-int I2C_read_special(unsigned char *buf){
-	if(strcmp("getID", Message)){
-		*buf = (char)i2c_smbus_read_byte_data(my_i2c_client, 0x75);
-		return 0;
-	}else{
-		return -1;	//Command didn't match
-	}
+void I2C_read_special(unsigned char *buf, unsigned char cmd){
+	*buf = (char)i2c_smbus_read_byte_data(my_i2c_client, 0x75);
 }
 
 void I2C_read_data(unsigned char *outBuf, unsigned int len){
@@ -106,9 +101,6 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	//Print for debugging
 	printk(KERN_INFO "Read from device Entered");
 
-	// Read from I2C
-	//I2C_read_special(Message);
-	//Message_Ptr = Message[0];		//Sets the pointer to the start of the message
 	
 	if(cmdIdentified){
 		D = &data;
@@ -124,8 +116,9 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		Message_Ptr = Message;
 	}
 	
-	if(*Message_Ptr == 0) return -1;	//If the pointer is 0 then no message was read
-
+	if(*Message_Ptr == 0){
+		return -1;	//If the pointer is 0 then no message was read
+	}
 	bytesRead = 0;
 	//Print message from I2C to user
 	while(len && *Message_Ptr){
@@ -140,12 +133,13 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
 	// C90 requires declaration before code.
 	int i;
-	unsigned char cmd;
+	int cmdDataSeperator = 0;
+	unsigned char reg;
 	unsigned char *C;
-	unsigned char cmdData[2];
-	char inMessage[8] = {0x00};
-	char command[8] = {0x00};
-	unsigned char data;
+	char inMessage[20] = {0x00};
+	char cmd[10];
+	unsigned char data[10];
+	int dataRead = 0;
 	// Print for debugging
 	printk(KERN_INFO "Write to device Entered");
 	
@@ -153,29 +147,37 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	strcpy(command, inMessage);
-	command[7] = 0x00;
-	command[5] = '\n';
-	data = inMessage[6];
-	// Send command to I2C
-	cmd = commandIntMPU(command);
-	if(cmd == 0x00){
-		cmdIdentified = false;
-		printk(KERN_INFO "Command not identified");
-	}else{
-		if(data == 0x00){
-			C = &cmd;
-			cmdIdentified = true;
-			I2C_write_data(C,1);
-		}else if(data != 0x00){
-			cmdIdentified = true;
-			cmdData[0] = cmd;
-			cmdData[1] = data;
-			C = cmdData;
-			I2C_write_data(C,2);
+
+	// Seperate command and data
+	for(i = 0; i<20;i++){
+		if(inMessage[i] == '\n') break;	//For the real implementation \n should probably be changed to \0
+		if(inMessage[i] == '\0') break;
+		if(inMessage[i] == ' ') cmdDataSeperator = 1;
+		if(cmdDataSeperator == 0){
+			cmd[i] = inMessage[i];
+		}
+		if(cmdDataSeperator == 1){
+			data[i] = inMessage[i];
+			dataRead++;
 		}
 	}
 
+	// Convert command to register value
+	reg = registerConverterMPU(cmd);
+	if(reg == 0x00){
+		cmdIdentified = false;
+		printk(KERN_INFO "Command not identified");
+		return -1;
+	}else{
+		cmdIdentified = true;
+		C = &reg;
+		if(dataRead < 1){
+			I2C_write_data(C, 1);
+		}else{
+			I2C_write_data(C,1);
+			I2C_write_data(data, dataRead);
+		}
+	}
 	return i;
 }
 
