@@ -133,7 +133,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 }
 
 // This function is malfunctioning...
-int handle_command(char *inMessage){
+int handle_command(char *inMessage, int len){
 	int i;
 	int cmdDataSeperator = 0;
 	unsigned char reg;
@@ -141,11 +141,12 @@ int handle_command(char *inMessage){
 	char cmd[10];
 	unsigned char data[10];
 	int dataRead = 0;
-	
-	for(i = 0;i<20 ;i++){
+	printk(KERN_INFO "Just before loop");
+	for(i=0; i<len; i++){
 		if(*(inMessage + i) == '\n') break;
 		Message[i] = *(inMessage + i);
 	}
+	printk(KERN_INFO "Just after loop");
 	return 0;
 	/*
 	// Seperate command and data
@@ -193,9 +194,11 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	if( handle_command(&inMessage[0]) < 0 ){
+	printk(KERN_INFO "before function call");
+	if( handle_command(inMessage, i) < 0 ){
 		return -1;
 	}
+	printk(KERN_INFO "After function call");
 	return 0;
 }
 
