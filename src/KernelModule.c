@@ -142,8 +142,8 @@ int handle_command(char *inMessage){
 	unsigned char data[10];
 	int dataRead = 0;
 	
-	for(i = 0;i<10 ;i++){
-		if(inMessage[i] == '\n') break;
+	for(i = 0;i<20 ;i++){
+		if(*(inMessage + i) == '\n') break;
 		Message[i] = *(inMessage + i);
 	}
 	return 0;
@@ -193,7 +193,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	if( handle_command(inMessage) < 0 ){
+	if( handle_command(&inMessage[0]) < 0 ){
 		return -1;
 	}
 	return 0;
