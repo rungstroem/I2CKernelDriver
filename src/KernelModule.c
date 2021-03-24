@@ -116,7 +116,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		Message_Ptr = Message;
 	}
 	*/
-	strcpy(Message, "Just a test");
+	//strcpy(Message, "Just a test");
 	Message_Ptr = Message;
 	// If the pointer is 0 then no message was read	
 	if(*Message_Ptr == 0){
@@ -132,6 +132,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	return bytesRead;	
 }
 
+// This function is malfunctioning...
 int handle_command(char *inMessage){
 	int i;
 	int cmdDataSeperator = 0;
@@ -140,7 +141,13 @@ int handle_command(char *inMessage){
 	char cmd[10];
 	unsigned char data[10];
 	int dataRead = 0;
-
+	
+	for(i = 0;i<10 ;i++){
+		if(inMessage[i] == '\n') break;
+		Message[i] = inMessage[i];
+	}
+	return 0;
+	/*
 	// Seperate command and data
 	for(i = 0; i<20;i++){
 		if(inMessage[i] == '\n') break;	//For the real implementation \n should probably be changed to \0
@@ -171,20 +178,14 @@ int handle_command(char *inMessage){
 			//I2C_write_data(data, dataRead);
 		}
 	}
-	return 0;
+	return 0;*/
 }
 
 // Called when writing to the device [echo > "command" /dev/I2CDriver]
 static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len, loff_t *offset){
 	// C90 requires declaration before code.
 	int i;
-	int cmdDataSeperator = 0;
-	unsigned char reg;
-	unsigned char *C;
 	char inMessage[20] = {0x00};
-	char cmd[10];
-	unsigned char data[10];
-	int dataRead = 0;
 	// Print for debugging
 	printk(KERN_INFO "Write to device Entered");
 	
@@ -196,39 +197,6 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 		return -1;
 	}
 	return 0;
-	// You should stop here and make a new function to handle the rest
-	/*
-	// Seperate command and data
-	for(i = 0; i<20;i++){
-		if(inMessage[i] == '\n') break;	//For the real implementation \n should probably be changed to \0
-		if(inMessage[i] == '\0') break;
-		if(inMessage[i] == ' ') cmdDataSeperator = 1;
-		if(cmdDataSeperator == 0){
-			cmd[i] = inMessage[i];
-		}
-		if(cmdDataSeperator == 1){
-			data[i] = inMessage[i];
-			dataRead++;
-		}
-	}*/
-	/*
-	// Convert command to register value
-	reg = registerConverterMPU(cmd);
-	if(reg == 0x00){
-		cmdIdentified = false;
-		printk(KERN_INFO "Command not identified");
-		return -1;
-	}else{
-		cmdIdentified = true;
-		C = &reg;
-		if(dataRead < 1){
-			I2C_write_data(C, 1);
-		}else{
-			I2C_write_data(C,1);
-			//I2C_write_data(data, dataRead);
-		}
-	}*/
-	//return i;
 }
 
 // I2C init and remove functions prototypes
