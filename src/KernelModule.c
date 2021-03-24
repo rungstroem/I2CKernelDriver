@@ -142,27 +142,21 @@ int handle_command(char *inMessage, int len){
 	unsigned char data[10];
 	int dataRead = 0;
 	printk(KERN_INFO "Just before loop");
+	// Command data seperation
 	for(i=0; i<len; i++){
 		if(*(inMessage + i) == '\n') break;
-		Message[i] = *(inMessage + i);
+		if(*(inMessage + i) == ' ') cmdDataSeperator = 1;
+		if(cmdDataSeperator == 0){
+			cmd[i] = *(inMessage + i);
+		}
+		if(cmdDataSeperator == 1){
+			data[dataRead] = *(inMessage + i);
+			dataRead++;
+		}
 	}
 	printk(KERN_INFO "Just after loop");
 	return 0;
 	/*
-	// Seperate command and data
-	for(i = 0; i<20;i++){
-		if(inMessage[i] == '\n') break;	//For the real implementation \n should probably be changed to \0
-		if(inMessage[i] == '\0') break;
-		if(inMessage[i] == ' ') cmdDataSeperator = 1;
-		if(cmdDataSeperator == 0){
-			cmd[i] = inMessage[i];
-		}
-		if(cmdDataSeperator == 1){
-			data[i] = inMessage[i];
-			dataRead++;
-		}
-	}
-	
 	// Convert command to register value
 	reg = registerConverterMPU(cmd);
 	if(reg == 0x00){
@@ -194,9 +188,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	printk(KERN_INFO "before function call");
 	handle_command(inMessage, i);
-	printk(KERN_INFO "After function call");
 	return i;
 }
 
