@@ -195,11 +195,9 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
 	printk(KERN_INFO "before function call");
-	if( handle_command(inMessage, i) < 0 ){
-		return -1;
-	}
+	handle_command(inMessage, i);
 	printk(KERN_INFO "After function call");
-	return 0;
+	return i;
 }
 
 // I2C init and remove functions prototypes
