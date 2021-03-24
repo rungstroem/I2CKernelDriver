@@ -133,7 +133,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 }
 
 // This function is malfunctioning...
-int handle_command(char inMessage[]){
+int handle_command(char *inMessage){
 	int i;
 	int cmdDataSeperator = 0;
 	unsigned char reg;
@@ -144,7 +144,7 @@ int handle_command(char inMessage[]){
 	
 	for(i = 0;i<10 ;i++){
 		if(inMessage[i] == '\n') break;
-		Message[i] = inMessage[i];
+		Message[i] = *(inMessage + i);
 	}
 	return 0;
 	/*
