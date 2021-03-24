@@ -101,7 +101,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	//Print for debugging
 	printk(KERN_INFO "Read from device Entered");
 
-	
+	/*
 	if(cmdIdentified){
 		D = &data;
 		I2C_read_data(D,1);
@@ -115,6 +115,8 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		strcpy(Message, "command not identified");
 		Message_Ptr = Message;
 	}
+	*/
+	Message_Ptr = Message;
 	// If the pointer is 0 then no message was read	
 	if(*Message_Ptr == 0){
 		return -1;
@@ -145,10 +147,12 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	
 	// Get message from userspace
 	for(i = 0; i < len && i < BUF_LEN; i++){
-		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
+		get_user(Message[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	// You should stop here and make a new function to handle the rest
 
+	Message_Ptr = Message;
+	// You should stop here and make a new function to handle the rest
+	/*
 	// Seperate command and data
 	for(i = 0; i<20;i++){
 		if(inMessage[i] == '\n') break;	//For the real implementation \n should probably be changed to \0
@@ -161,11 +165,11 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 			data[i] = inMessage[i];
 			dataRead++;
 		}
-	}
-
+	}*/
+	/*
 	// Convert command to register value
 	reg = registerConverterMPU(cmd);
-	/*if(reg == 0x00){
+	if(reg == 0x00){
 		cmdIdentified = false;
 		printk(KERN_INFO "Command not identified");
 		return -1;
