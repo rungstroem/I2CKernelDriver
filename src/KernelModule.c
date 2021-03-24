@@ -192,7 +192,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
-	if( handle_command(&inMessage) < 0 ){
+	if( handle_command(inMessage) < 0 ){
 		return -1;
 	}
 	return 0;
