@@ -115,9 +115,9 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		strcpy(Message, "command not identified");
 		Message_Ptr = Message;
 	}
-	
+	// If the pointer is 0 then no message was read	
 	if(*Message_Ptr == 0){
-		return -1;	//If the pointer is 0 then no message was read
+		return -1;
 	}
 	bytesRead = 0;
 	//Print message from I2C to user
@@ -147,6 +147,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 	for(i = 0; i < len && i < BUF_LEN; i++){
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
+	// You should stop here and make a new function to handle the rest
 
 	// Seperate command and data
 	for(i = 0; i<20;i++){
@@ -164,7 +165,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 
 	// Convert command to register value
 	reg = registerConverterMPU(cmd);
-	if(reg == 0x00){
+	/*if(reg == 0x00){
 		cmdIdentified = false;
 		printk(KERN_INFO "Command not identified");
 		return -1;
@@ -177,7 +178,7 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 			I2C_write_data(C,1);
 			//I2C_write_data(data, dataRead);
 		}
-	}
+	}*/
 	return i;
 }
 
