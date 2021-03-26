@@ -109,6 +109,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 			outMessage[0] = data;
 		}
 		Message_Ptr = outMessage;
+		cmdIdentified = false;
 	}else{
 		strcpy(Message, "command not identified");
 		Message_Ptr = Message;
