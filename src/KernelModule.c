@@ -138,14 +138,14 @@ int handle_command(char *inMessage, int len){
 	int cmdDataSeperator = 0;
 	unsigned char reg;
 	unsigned char *C;
-	char cmd[10];
-	unsigned char data[10];
+	char cmd[10] = {0x00};
+	unsigned char data[10] = {0x00};
 	int dataRead = 0;
 	printk(KERN_INFO "Just before loop");
 	// Command data seperation
 	for(i=0; i<len; i++){
 		if(*(inMessage + i) == '\n') break;
-		if(*(inMessage + i) == ' ') cmdDataSeperator = 1;
+		if(*(inMessage + i) == " ") cmdDataSeperator = 1;
 		if(cmdDataSeperator == 0){
 			cmd[i] = *(inMessage + i);
 		}
