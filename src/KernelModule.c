@@ -92,10 +92,10 @@ int I2C_write_data(unsigned char *buf, unsigned int len){
 // Called when reading from the device [cat /dev/I2CDriver]
 static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){	//Len is the size of the user buffer, loff_t is the index in the user buffer
 	// C90 requires declaration before code
-	int bytesRead;
-	unsigned char data;
+	int bytesRead = 0;
+	unsigned char data 0x00;
 	unsigned char *D;
-	char outMessage;
+	char outMessage[10] = {0x00};
 	//Print for debugging
 	printk(KERN_INFO "Read from device Entered");
 
@@ -103,9 +103,9 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		D = &data;
 		I2C_read_data(D,1);
 		if(data == 0x00){	//This has to be removed in the final version
-			outMessage = '0';
+			outMessage[0] = '0';
 		}else{
-			outMessage = data;
+			outMessage[0] = data;
 		}
 		Message_Ptr = outMessage;
 	}else{
@@ -117,7 +117,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	if(*Message_Ptr == 0){
 		return -1;
 	}
-	bytesRead = 0;
+
 	//Print message from I2C to user
 	while(len && *Message_Ptr){
 		put_user(*(Message_Ptr++), userBuffer++);
