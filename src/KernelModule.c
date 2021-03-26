@@ -37,6 +37,7 @@ int deviceOpen = 0;
 char Message[BUF_LEN];
 char *Message_Ptr;
 bool cmdIdentified;
+bool writeOpened = false;
 //#####################################################
 
 //#####################################################
@@ -99,33 +100,36 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	
 	//Print for debugging
 	printk(KERN_INFO "Read from device Entered");
-
-	if(cmdIdentified){
-		D = &data;
-		I2C_read_data(D,1);
-		if(data == 0x00){	//This has to be removed in the final version
-			outMessage[0] = '0';
+	if(writeOpened == true){
+		if(cmdIdentified){
+			D = &data;
+			I2C_read_data(D,1);
+			if(data == 0x00){	//This has to be removed in the final version
+				outMessage[0] = '0';
+			}else{
+				outMessage[0] = data;
+			}
+			Message_Ptr = outMessage;
 		}else{
-			outMessage[0] = data;
+			strcpy(Message, "command not identified");
+			Message_Ptr = Message;
 		}
-		Message_Ptr = outMessage;
-		cmdIdentified = false;
-	}else{
-		strcpy(Message, "command not identified");
-		Message_Ptr = Message;
-	}
 	
-	// If the pointer is 0 then no message was read	
-	if(*Message_Ptr == 0){
-		return -1;
+		// If the pointer is 0 then no message was read	
+		if(*Message_Ptr == 0){
+			return -1;
+		}
+
+		//Print message from I2C to user
+		while(len && *Message_Ptr){
+			put_user(*(Message_Ptr++), userBuffer++);
+			len--;
+			bytesRead++;
+		}
+		//Set to false so write command has to be executed again before read can be executed
+		writeOpened = false;
 	}
 
-	//Print message from I2C to user
-	while(len && *Message_Ptr){
-		put_user(*(Message_Ptr++), userBuffer++);
-		len--;
-		bytesRead++;
-	}
 	return bytesRead;	
 }
 
@@ -192,6 +196,8 @@ static ssize_t dev_write(struct file *filep, const char *userBuffer, size_t len,
 		get_user(inMessage[i], userBuffer +i);		// Echo inserts \n at the end!
 	}
 	handle_command(inMessage, i);
+	// Attempt to handle only read data once a command is written
+	writeOpened = true;
 	return i;
 }
 
