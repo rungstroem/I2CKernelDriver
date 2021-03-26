@@ -116,7 +116,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		Message_Ptr = Message;
 	}
 	*/
-	strcpy(Message, "Just a test");
+	//strcpy(Message, "Just a test");
 	Message_Ptr = Message;
 	// If the pointer is 0 then no message was read	
 	if(*Message_Ptr == 0){
@@ -155,8 +155,7 @@ int handle_command(char *inMessage, int len){
 		}
 	}
 	printk(KERN_INFO "Just after loop");
-	return 0;
-	/*
+	
 	// Convert command to register value
 	reg = registerConverterMPU(cmd);
 	if(reg == 0x00){
@@ -165,6 +164,10 @@ int handle_command(char *inMessage, int len){
 		return -1;
 	}else{
 		cmdIdentified = true;
+		Message[0] = reg;
+		Message[1] = data;
+		/*
+		cmdIdentified = true;
 		C = &reg;
 		if(dataRead < 1){
 			I2C_write_data(C, 1);
@@ -172,8 +175,9 @@ int handle_command(char *inMessage, int len){
 			I2C_write_data(C,1);
 			//I2C_write_data(data, dataRead);
 		}
+		*/
 	}
-	return 0;*/
+	return 0;
 }
 
 // Called when writing to the device [echo > "command" /dev/I2CDriver]
