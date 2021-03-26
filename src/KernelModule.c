@@ -93,7 +93,7 @@ int I2C_write_data(unsigned char *buf, unsigned int len){
 static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t *offset){	//Len is the size of the user buffer, loff_t is the index in the user buffer
 	// C90 requires declaration before code
 	int bytesRead = 0;
-	unsigned char data 0x00;
+	unsigned char data = 0x00;
 	unsigned char *D;
 	char outMessage[10] = {0x00};
 	//Print for debugging
