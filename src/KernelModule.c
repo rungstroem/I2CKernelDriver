@@ -101,11 +101,11 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	//Print for debugging
 	printk(KERN_INFO "Read from device Entered");
 
-	/*
+	//strcpy(Message, "Just a test");
 	if(cmdIdentified){
 		D = &data;
 		I2C_read_data(D,1);
-		if(data == 0x00){
+		if(data 0x00){
 			outMessage = '0';
 		}else{
 			outMessage = data;
@@ -113,15 +113,8 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		Message_Ptr = &outMessage;
 	}else{
 		strcpy(Message, "command not identified");
-		Message_Ptr = Message;
+		Message_Ptr = &Message;
 	}
-	*/
-	//strcpy(Message, "Just a test");
-	if(cmdIdentified){
-		D = &data;
-		I2C_read_data(D,1);
-	}
-	Message_Ptr = &data;
 	
 	// If the pointer is 0 then no message was read	
 	if(*Message_Ptr == 0){
