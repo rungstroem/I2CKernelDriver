@@ -155,9 +155,9 @@ int handle_command(char *inMessage, int len){
 		}
 	}
 	printk(KERN_INFO "Just after loop");
-	
+	strcpy(Message, cmd);
 	// Convert command to register value
-	reg = commandIntMPU(cmd);
+	/*reg = registerConverterMPU(cmd);
 	if(reg == 0x00){
 		cmdIdentified = false;
 		printk(KERN_INFO "Command not identified");
@@ -166,7 +166,7 @@ int handle_command(char *inMessage, int len){
 		cmdIdentified = true;
 		Message[0] = reg;
 		Message[1] = data;
-		/*
+		
 		cmdIdentified = true;
 		C = &reg;
 		if(dataRead < 1){
@@ -175,8 +175,8 @@ int handle_command(char *inMessage, int len){
 			I2C_write_data(C,1);
 			//I2C_write_data(data, dataRead);
 		}
-		*/
-	}
+		
+	}*/
 	return 0;
 }
 
