@@ -105,7 +105,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	if(cmdIdentified){
 		D = &data;
 		I2C_read_data(D,1);
-		if(data 0x00){
+		if(data == 0x00){
 			outMessage = '0';
 		}else{
 			outMessage = data;
