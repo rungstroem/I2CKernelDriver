@@ -141,6 +141,7 @@ int handle_command(char *inMessage, int len){
 	char cmd[10] = {0x00};
 	unsigned char data[10] = {0x00};
 	int dataRead = 0;
+
 	printk(KERN_INFO "Just before loop");
 	// Command data seperation
 	for(i=0; i<len; i++){
@@ -166,13 +167,14 @@ int handle_command(char *inMessage, int len){
 		return -1;
 	}else{
 		cmdIdentified = true;
-		//Message[0] = reg;
-		Message[0] = data[0];
+		Message[0] = reg;
+		Message[1] = data[0];
+		Message[2] = (char)dataRead;
 		/*	
 		cmdIdentified = true;
 		C = &reg;
 		if(dataRead < 1){
-			I2C_write_data(C, 1);
+			I2C_write_data(C,1);
 		}else{
 			I2C_write_data(C,1);
 			//I2C_write_data(data, dataRead);
