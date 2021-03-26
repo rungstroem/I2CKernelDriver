@@ -113,7 +113,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		Message_Ptr = &outMessage;
 	}else{
 		strcpy(Message, "command not identified");
-		Message_Ptr = &Message;
+		Message_Ptr = Message;
 	}
 	
 	// If the pointer is 0 then no message was read	
