@@ -158,6 +158,7 @@ int handle_command(char *inMessage, int len){
 			dataRead++;
 		}
 	}
+	Message[1] = 0x00;
 	printk(KERN_INFO "Just after loop");
 	// Convert command to register value
 	reg = registerConverterMPU(cmd);
