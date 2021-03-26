@@ -95,7 +95,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	int bytesRead = 0;
 	unsigned char data = 0x00;
 	unsigned char *D;
-	char outMessage[10] = {0x00};
+	char outMessage[2] = {0x00};
 	
 	//Print for debugging
 	printk(KERN_INFO "Read from device Entered");
