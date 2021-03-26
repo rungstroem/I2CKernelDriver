@@ -99,11 +99,10 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 	//Print for debugging
 	printk(KERN_INFO "Read from device Entered");
 
-	//strcpy(Message, "Just a test");
 	if(cmdIdentified){
 		D = &data;
 		I2C_read_data(D,1);
-		if(data == 0x00){
+		if(data == 0x00){	//This has to be removed in the final version
 			outMessage = '0';
 		}else{
 			outMessage = data;
@@ -169,19 +168,11 @@ int handle_command(char *inMessage, int len){
 			//Message[0] = reg;
 			I2C_write_data(C,1);
 		}else{
+			I2C_write_data(C,1);	//Write register
+			I2C_write_data(data,dataRead);	//Write data up to 10 char
 			//Message[0] = reg;
 			//Message[1] = data[0];
 		}
-		/*	
-		cmdIdentified = true;
-		C = &reg;
-		if(dataRead < 1){
-			I2C_write_data(C,1);
-		}else{
-			I2C_write_data(C,1);
-			//I2C_write_data(data, dataRead);
-		}
-		*/
 	}
 	return 0;
 }
