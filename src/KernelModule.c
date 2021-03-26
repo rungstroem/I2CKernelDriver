@@ -107,7 +107,7 @@ static ssize_t dev_read(struct file *filep, char *userBuffer, size_t len, loff_t
 		}else{
 			outMessage = data;
 		}
-		Message_Ptr = &outMessage;
+		Message_Ptr = outMessage;
 	}else{
 		strcpy(Message, "command not identified");
 		Message_Ptr = Message;
@@ -165,7 +165,7 @@ int handle_command(char *inMessage, int len){
 		cmdIdentified = true;
 		C = &reg;
 		if(dataRead < 1){
-			//Message[0] = reg;
+			Message[0] = reg;
 			I2C_write_data(C,1);
 		}else{
 			I2C_write_data(C,1);	//Write register
