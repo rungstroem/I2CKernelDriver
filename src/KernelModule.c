@@ -145,7 +145,10 @@ int handle_command(char *inMessage, int len){
 	// Command data seperation
 	for(i=0; i<len; i++){
 		if(*(inMessage + i) == '\n') break;
-		if(*(inMessage + i) == " ") cmdDataSeperator = 1;
+		if(*(inMessage + i) == ' '){ 
+			cmdDataSeperator = 1;
+			continue;
+		}
 		if(cmdDataSeperator == 0){
 			cmd[i] = *(inMessage + i);
 		}
