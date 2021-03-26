@@ -157,7 +157,7 @@ int handle_command(char *inMessage, int len){
 	printk(KERN_INFO "Just after loop");
 	
 	// Convert command to register value
-	reg = registerConverterMPU(cmd);
+	reg = commandIntMPU(cmd);
 	if(reg == 0x00){
 		cmdIdentified = false;
 		printk(KERN_INFO "Command not identified");
