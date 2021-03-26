@@ -168,11 +168,13 @@ int handle_command(char *inMessage, int len){
 		return -1;
 	}else{
 		cmdIdentified = true;
+		C = &reg;
 		if(dataRead < 1){
-			Message[0] = reg;
+			//Message[0] = reg;
+			I2C_write_data(C,1);
 		}else{
-			Message[0] = reg;
-			Message[1] = data[0];
+			//Message[0] = reg;
+			//Message[1] = data[0];
 		}
 		/*	
 		cmdIdentified = true;
