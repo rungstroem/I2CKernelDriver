@@ -79,9 +79,6 @@ void I2C_read_special(unsigned char *buf, unsigned char cmd){
 }
 
 void I2C_read_data(unsigned char *outBuf, unsigned int len){
-	//while(i2c_master_recv(my_i2c_client, outBuf, len) < 1){
-		//Wait for i2c_master_receive to return positive value
-	//}
 	i2c_master_recv(my_i2c_client, outBuf, len);
 	return;
 }
