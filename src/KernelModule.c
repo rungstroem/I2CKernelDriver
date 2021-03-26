@@ -144,7 +144,7 @@ int handle_command(char *inMessage, int len){
 	printk(KERN_INFO "Just before loop");
 	// Command data seperation
 	for(i=0; i<len; i++){
-		//if(*(inMessage + i) == "\n") break;
+		if(*(inMessage + i) == '\n') break;
 		if(*(inMessage + i) == " ") cmdDataSeperator = 1;
 		if(cmdDataSeperator == 0){
 			cmd[i] = *(inMessage + i);
