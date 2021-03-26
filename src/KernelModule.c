@@ -167,7 +167,7 @@ int handle_command(char *inMessage, int len){
 	}else{
 		cmdIdentified = true;
 		//Message[0] = reg;
-		Message[1] = data[0];
+		Message[0] = data[0];
 		/*	
 		cmdIdentified = true;
 		C = &reg;
