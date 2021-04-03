@@ -244,9 +244,9 @@ static struct file_operations fops={
 // Runs when module is inserted in kernel (insmod)
 int init_module(void){	
 	// Initializes the device file
-	//if(initDeviceFile() < 0){
-	//	return -1;
-	//}
+	if(initDeviceFile() < 0){
+		return -1;
+	}
 	// Initialize I2C adaptor and client
 	if(initI2C() < 0){
 		return -1;
@@ -268,9 +268,38 @@ void cleanup_module(void){
 
 int MPUProbe(struct i2c_client *client, const struct i2c_device_id *id){
 	// Stuff in here gets called when the i2c_add_driver is called
-	if(initDeviceFile() < 0){
-		return -1;
-	}
+	unsigned char buf[2] = {0x6b, 0x80};
+	I2C_write_data(buf, 2);	// reset device
+	
+	msleep(5);
+	
+	buf[0] = 0x6b, buf[1] = 0x00;
+	I2C_write_data(buf, 2);	//Wake-up the device
+	
+	msleep(5);
+
+	I2C_write_data(0x75, 1);
+	I2C_read_data(buf, 1);	//Read device ID
+	
+	msleep(5);
+	
+	buf[0] = 0x6b, buf[1] = 0x00;
+	I2C_write_data(buf, 2);	// Set 20MHz internal clock source
+	
+	msleep(5);
+
+	I2C_write_data(0x6c, 1);
+	I2C_read_data(buf, 1);
+	
+	buf[0] = 0x6c, buf[1] = 0x3f;
+	I2C_write_data(buf, 2);	//Enable gyro and acc
+	buf[0] = 0x1c, buf[1] = 0x00;
+	I2C_write_data(buf, 2);	//Set acc +-2g
+	buf[0] = 0x1b, buf[1] = 0x18;
+	I2C_write_data(buf, 2);	//Set gyro 2000dps
+	
+	msleep(10);
+	
 	return 0;
 }
 
