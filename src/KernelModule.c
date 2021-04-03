@@ -57,8 +57,12 @@ static struct i2c_device_id my_id_table[] = {
 	{ SLAVE_DEVICE_NAME, 0},
 	{},	//Has to be terminated with a 0 entry - some kernel querk...
 };
-
 MODULE_DEVICE_TABLE(i2c, my_id_table);
+
+// Prototypes for function to initialize and remove driver
+int MPUProbe(struct i2c_client *client, const struct i2c_device_id *id);
+int MPURemove(struct i2c_client *client);
+
 
 // Hooks to manage devices
 static struct i2c_driver my_i2c_driver = {
@@ -67,6 +71,8 @@ static struct i2c_driver my_i2c_driver = {
 		.owner = THIS_MODULE,
 	},
 	.id_table = my_id_table,
+	.probe = MPUProbe,
+	.remove = MPURemove,
 
 };
 
@@ -260,8 +266,15 @@ void cleanup_module(void){
 	printk(KERN_INFO "I2CKernelModule removed\n");
 }
 
+int MPUProbe(struct i2c_client *client, const struct i2c_device_id *id){
+	// Stuff in here gets called when the i2c_add_driver is called
+	return 0;
+}
 
-
+int MPURemove(struct i2c_client *client){
+	// Stuff goes in here
+	return 0;
+}
 
 // ###############################################################################################
 // I2C init and remove functions
