@@ -71,7 +71,7 @@ static struct i2c_driver my_i2c_driver = {
 		.owner = THIS_MODULE,
 	},
 	.id_table = my_id_table,
-	//.probe = MPUProbe,
+	.probe = MPUProbe,
 	.remove = MPURemove,
 
 };
