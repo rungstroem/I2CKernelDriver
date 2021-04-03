@@ -268,9 +268,9 @@ void cleanup_module(void){
 
 int MPUProbe(struct i2c_client *client, const struct i2c_device_id *id){
 	// Stuff in here gets called when the i2c_add_driver is called
-	//if(initDeviceFile() < 0){
-	//	return -1;
-	//}
+	if(initDeviceFile() < 0){
+		return -1;
+	}
 	return 0;
 }
 
