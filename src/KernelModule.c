@@ -277,36 +277,22 @@ int MPUProbe(struct i2c_client *client, const struct i2c_device_id *id){
 	
 	buf[0] = 0x6b, buf[1] = 0x00;
 	B = buf;
-	I2C_write_data(B, 2);	//Wake-up the device
-	
-	msleep(5);	
-	
-	buf[0] = 0x75, buf[1] = 0x00;
-	B = buf;
-	I2C_write_data(B, 1);
-	I2C_read_data(B, 1);	//Read device ID
-	
-	msleep(5);	
-	
-	buf[0] = 0x6b, buf[1] = 0x00;
-	B = buf;
 	I2C_write_data(B, 2);	// Set 20MHz internal clock source
-	
-	msleep(5);	
-
-	buf[0] = 0x6c, buf[1] = 0x00;
-	B = buf;
-	I2C_write_data(B, 1);
-	I2C_read_data(B, 1);
 	
 	msleep(5);	
 	
 	buf[0] = 0x6c, buf[1] = 0x3f;
 	B = buf;
 	I2C_write_data(B, 2);	//Enable gyro and acc
+	
+	msleep(5);	
+	
 	buf[0] = 0x1c, buf[1] = 0x00;
 	B = buf;
 	I2C_write_data(B, 2);	//Set acc +-2g
+	
+	msleep(5);	
+	
 	buf[0] = 0x1b, buf[1] = 0x18;
 	B = buf;
 	I2C_write_data(B, 2);	//Set gyro 2000dps
