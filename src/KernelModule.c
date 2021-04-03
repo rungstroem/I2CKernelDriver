@@ -244,9 +244,9 @@ static struct file_operations fops={
 // Runs when module is inserted in kernel (insmod)
 int init_module(void){	
 	// Initializes the device file
-	if(initDeviceFile() < 0){
-		return -1;
-	}
+	//if(initDeviceFile() < 0){
+	//	return -1;
+	//}
 	// Initialize I2C adaptor and client
 	if(initI2C() < 0){
 		return -1;
@@ -268,11 +268,16 @@ void cleanup_module(void){
 
 int MPUProbe(struct i2c_client *client, const struct i2c_device_id *id){
 	// Stuff in here gets called when the i2c_add_driver is called
+	if(initDeviceFile() < 0){
+		return -1;
+	}
 	return 0;
 }
 
 int MPURemove(struct i2c_client *client){
 	// Stuff goes in here
+	i2c_del_driver(&my_i2c_driver);
+	unregisterDeviceFile();
 	return 0;
 }
 
