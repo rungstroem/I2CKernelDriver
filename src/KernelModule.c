@@ -269,27 +269,31 @@ void cleanup_module(void){
 int MPUProbe(struct i2c_client *client, const struct i2c_device_id *id){
 	// Stuff in here gets called when the i2c_add_driver is called
 	unsigned char buf[2] = {0x6b, 0x80};
+	int i = 0;
 	I2C_write_data(buf, 2);	// reset device
 	
-	msleep(5);
+	for(i=0; i<30000; i++);	
 	
 	buf[0] = 0x6b, buf[1] = 0x00;
 	I2C_write_data(buf, 2);	//Wake-up the device
 	
-	msleep(5);
-
+	for(i=0; i<30000; i++);	
+	
 	I2C_write_data(0x75, 1);
 	I2C_read_data(buf, 1);	//Read device ID
 	
-	msleep(5);
+	for(i=0; i<30000; i++);	
 	
 	buf[0] = 0x6b, buf[1] = 0x00;
 	I2C_write_data(buf, 2);	// Set 20MHz internal clock source
 	
-	msleep(5);
+	for(i=0; i<30000; i++);	
+	
 
 	I2C_write_data(0x6c, 1);
 	I2C_read_data(buf, 1);
+	
+	for(i=0; i<30000; i++);	
 	
 	buf[0] = 0x6c, buf[1] = 0x3f;
 	I2C_write_data(buf, 2);	//Enable gyro and acc
@@ -297,8 +301,6 @@ int MPUProbe(struct i2c_client *client, const struct i2c_device_id *id){
 	I2C_write_data(buf, 2);	//Set acc +-2g
 	buf[0] = 0x1b, buf[1] = 0x18;
 	I2C_write_data(buf, 2);	//Set gyro 2000dps
-	
-	msleep(10);
 	
 	return 0;
 }
