@@ -54,6 +54,7 @@ static struct i2c_client * my_i2c_client = NULL;
 // I2C structs for general device information
 // Supported devices
 static struct i2c_device_id my_id_table[] = {
+	{ .compatible = "MPU6050", },
 	{ SLAVE_DEVICE_NAME, 0},
 	{},	//Has to be terminated with a 0 entry - some kernel querk...
 };
@@ -71,7 +72,7 @@ static struct i2c_driver my_i2c_driver = {
 		.owner = THIS_MODULE,
 	},
 	.id_table = my_id_table,
-	.probe = MPUProbe,
+	//.probe = MPUProbe,
 	.remove = MPURemove,
 
 };
