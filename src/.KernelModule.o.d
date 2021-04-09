@@ -79,7 +79,8 @@ KernelModule.o: /home/runge/projects/I2CKernelDriver/src/KernelModule.c \
  arch/x86/include/asm/nospec-branch.h include/linux/static_key.h \
  include/linux/objtool.h arch/x86/include/asm/alternative-asm.h \
  arch/x86/include/asm/msr-index.h arch/x86/include/asm/unwind_hints.h \
- arch/x86/include/asm/orc_types.h arch/x86/include/uapi/asm/sigcontext.h \
+ arch/x86/include/asm/orc_types.h arch/x86/include/asm/proto.h \
+ arch/x86/include/uapi/asm/ldt.h arch/x86/include/uapi/asm/sigcontext.h \
  arch/x86/include/asm/current.h arch/x86/include/asm/percpu.h \
  include/asm-generic/percpu.h include/linux/threads.h \
  include/linux/percpu-defs.h arch/x86/include/asm/page.h \

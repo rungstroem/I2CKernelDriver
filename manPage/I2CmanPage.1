@@ -1,0 +1,55 @@
+." The manual page for the deveopled kernel module
+." This is the header that contains name, section number, (left and center footer, and center header) where text will be displayed on every page
+." section number is 4 because that is the header for devices, and this is a device driver
+
+.TH I2CKernelModule 4 "LEO 2 2021" "version 0.01 alpha"
+
+." Sections are created with .SH for section header
+
+.SH NAME
+I2CKernelModule
+Insert very short description of what the program does here
+
+.SH SYNOPSIS
+This describes the syntex used to run the program from the command line
+
+.SH DESCRIPTION
+This is where the programs functionality is described
+
+.SH EXAMPLE
+
+.SH OPTIONS
+
+This is where the options, that the program takes, functionallity is described.
+
+.SH BUGS
+Known bugs. 
+Unloading the module from the kernel using rmmod does not seem to work as the module cannot be loaded using insmod afterwards.
+
+.SH AUTHOR
+This program is solely written and maintained by the author:
+.RS
+Kenneth Rungstroem Larsen.
+.RE
+Contact:
+.RS
+rungstroem@gmail.com 
+.RE
+for more information, bug reports or anything related to the program.
+
+
+.SH "SEE ALSO"
+
+
+." use .PP for paragraf 
+." .TP for tag paragraf
+." .BI - bold and italic
+." .B - bold
+." .I - italic
+." .RS - relative indent start - follow the text with .RE for relave indent end
+." .IP - alternative to .TP - can be used to if we want to have -e in bold
+
+." More information on man page writing on http://www.linuxhowtos.org/System/creatingman.htm
+." and http://anaturb.net/create_man_p.htm
+
+." to "compile" the man page use groff -man -Tascii ./I2CmanPage.1 | less 
