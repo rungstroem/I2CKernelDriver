@@ -19,28 +19,99 @@ This is where the programs functionality is described
 .SH EXAMPLE
 
 .SH OPTIONS
+Supported commands used extracting and writing value to the IMU
+
+.RS
+.B getID 
+- returns the IMUs' id 
+
+.B TEMPH 
+- returns the high byte of the temperature sensors' measurement
+
+.B TEMPL 
+- returns the low byte of the temperature sensors' measurement
+
+.B ACCXH 
+- 
+
+.B ACCXL 
+- 
+
+.B ACCYH 
+-
+
+.B ACCYL 
+- 
+
+.B ACCZH 
+- 
+
+.B ACCZL 
+- 
+
+.B GYRXH 
+- 
+
+.B GYRXL 
+- 
+
+.B GYRYH 
+- 
+
+.B GYRYL 
+- 
+
+.B GYRZH 
+- 
+
+.B GYRZL 
+- 
+.RE
 
 This is where the options, that the program takes, functionallity is described.
 
 .SH BUGS
 Known bugs. 
-Unloading the module from the kernel using rmmod does not seem to work as the module cannot be loaded using insmod afterwards.
+Unloading the module from the kernel using rmmod does not seem to work as the module cannot be loaded again using insmod afterwards.
+A reboot is needed.
 
 .SH AUTHOR
 This program is solely written and maintained by the author:
 .RS
 Kenneth Rungstroem Larsen.
 .RE
+
 Contact:
 .RS
 rungstroem@gmail.com 
 .RE
 for more information, bug reports or anything related to the program.
 
+.SH AUTO-LOAD
+Initializing the device driver can be done in many different ways. 
+
+Using device tree.
+.br 
+Device trees are a uniform way of loading the correct device driver when a device appears at the I2C bus, or any bus, on kernel boot. The purpose is to allow multiple devices of the same type to utilize the same driver without specifying all of these devices in the driver source code. 
+This is especially usefull when different manufactures produce essecentially the same device, but the devices' address may for example be changed. Instead of updating the device driver with all different device addresses, the device tree registers the type of device connected at boot, 
+and assigns/loads the appropriate driver. 
+
+Using explicit declaration.
+.br 
+Explicit declaration has all of the supported devices declared in the "struct i2c_board_info" structure using "I2C_BOARD_INFO". This structure explicitely states all supported devices name and address as well as other usefull information. The driver uses this structure to bind the driver 
+to a device upon load, as long as the device is present. 
+
+The difference between using explicit and device tree declaration is the need for stating all devices in the i2c_board_info within the source code for the driver as compared to stating the devices in the device tree. Using the device tree approach aliviates the need for recompilation of
+the drivers' source code, when a new device has to be added. This makes it easier to distribute the driver as a binary through a package manager.
 
 .SH "SEE ALSO"
+.RS
+https://www.kernel.org/doc/html/latest/i2c/summary.html
 
+https://elinux.org/Device_Tree_Usage
+.RE
 
+." .br - line break - be carefull!
 ." use .PP for paragraf 
 ." .TP for tag paragraf
 ." .BI - bold and italic
