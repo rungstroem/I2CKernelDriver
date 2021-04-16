@@ -1,0 +1,16 @@
+/dts-v1/;
+/plugin/;
+/{
+	compatible = "brcm, bcm2835";
+
+	fragment@0{
+		target = <&i2s>;
+		__overlay__{
+			status = "okay";
+			test_ref = <&test_label>;
+			test_label: test_subnode{
+				dummy;
+			};
+		};
+	};
+};
