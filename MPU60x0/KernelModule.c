@@ -53,11 +53,17 @@ static struct i2c_client * my_i2c_client = NULL;
 //#####################################################
 // I2C structs for general device information
 // Supported devices
-static struct i2c_device_id MPU_id_table[] = {
-	{ SLAVE_DEVICE_NAME, 0},
-	{},	//Has to be terminated with a 0 entry - some kernel querk...
+//static struct i2c_device_id MPU_id_table[] = {
+//	{ SLAVE_DEVICE_NAME, 0},
+//	{},	//Has to be terminated with a 0 entry - some kernel querk...
+//}
+//MODULE_DEVICE_TABLE(i2c, MPU_id_table);
+
+static struct of_device_id MPU60x0_matches[] __devinitdata = {
+	{.compatible ="Sparkfunm, MPU6050",},
+	{}
 };
-MODULE_DEVICE_TABLE(i2c, MPU_id_table);
+MODULE_DEVICE_TABLE(of, MPU60x0_match_table);
 
 // Prototypes for function to initialize and remove driver
 int MPUProbe(struct i2c_client *client, const struct i2c_device_id *id);
@@ -70,7 +76,7 @@ static struct i2c_driver my_i2c_driver = {
 		.name = SLAVE_DEVICE_NAME,
 		.owner = THIS_MODULE,
 	},
-	.id_table = MPU_id_table,
+	.of_match_table = MPU60x0_match_table,
 	.probe = MPUProbe,
 	.remove = MPURemove,
 
