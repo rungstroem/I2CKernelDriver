@@ -1,0 +1,10 @@
+To dump content of compiled device tree use:
+	fdtdump dtb_file.dtb > dump.txt		or just
+	fdtdump file.dtbo
+
+to compile device tree file use:
+	dtc -I dts -O dtb -o 2nd.dtbo 2nd-overlay.dts	or
+	dtc -@ -Hepapr -I dts -O dtb -o 1st.dtbo 1st-overlay.dts
+
+to see running device tree
+	dtc -I fs /proc/device-tree

@@ -1,0 +1,19 @@
+/dts-v1/;
+/plugin/;
+/{
+	compatible = "brcm, bcm2835";
+
+	fragment@0{
+		target = <&i2c1>;
+		__overlay__{
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			clock-frequency = <100000>;
+			I2CDriver@68{
+				compatible = "Sparkfun MPU6050";
+				reg = <0x68>;	
+			};
+		};
+	};
+};

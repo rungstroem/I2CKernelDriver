@@ -1,0 +1,1 @@
+cmd_/home/pi/I2CKernelDriver/KernelModule.ko := ld -r  -EL -T ./scripts/module-common.lds -T ./arch/arm/kernel/module.lds  --build-id  -o /home/pi/I2CKernelDriver/KernelModule.ko /home/pi/I2CKernelDriver/KernelModule.o /home/pi/I2CKernelDriver/KernelModule.mod.o ;  true

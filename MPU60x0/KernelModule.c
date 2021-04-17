@@ -11,7 +11,7 @@
 #include <linux/types.h>
 #include <linux/i2c.h>
 #include <linux/delay.h>	// Used for msleep() command
-
+#include <linux/of.h>
 #include "cmdInterpreter.h"
 
 //######################################################
@@ -43,7 +43,7 @@ bool writeOpened = false;
 
 //#####################################################
 // Global variables for I2C
-#define I2C_BUS_AVAILABLE 1
+#define I2C_BUS 1
 #define SLAVE_DEVICE_NAME "MPU6050"
 #define SLAVE_DEVICE_ADDRESS 0x68
 
@@ -51,19 +51,19 @@ static struct i2c_adapter * my_i2c_adapter = NULL;
 static struct i2c_client * my_i2c_client = NULL;
 
 //#####################################################
-// I2C structs for general device information
-// Supported devices
-//static struct i2c_device_id MPU_id_table[] = {
-//	{ SLAVE_DEVICE_NAME, 0},
-//	{},	//Has to be terminated with a 0 entry - some kernel querk...
-//}
-//MODULE_DEVICE_TABLE(i2c, MPU_id_table);
+//I2C structs for general device information 
+//Supported devices
+static struct i2c_device_id MPU_id_table[] = {	//i2c-core matches the name in the struct and passes it to probe
+	{ SLAVE_DEVICE_NAME, 0},
+	{},	//Has to be terminated with a 0 entry - some kernel querk...
+};
+MODULE_DEVICE_TABLE(i2c, MPU_id_table);
 
-static struct of_device_id MPU60x0_matches[] __devinitdata = {
-	{.compatible ="Sparkfunm, MPU6050",},
+static struct of_device_id MPU_of_match[] ={	//When an I2C device is instantiated with OF device tree, its compatible property is matches (format:"manufacurer, model") and the "model" is matched against the struct i2c_device_id - which also passes the element to probe
+	{.compatible ="Sparkfun MPU6050",},
 	{}
 };
-MODULE_DEVICE_TABLE(of, MPU60x0_match_table);
+MODULE_DEVICE_TABLE(of, MPU_of_match);
 
 // Prototypes for function to initialize and remove driver
 int MPUProbe(struct i2c_client *client, const struct i2c_device_id *id);
@@ -75,8 +75,9 @@ static struct i2c_driver my_i2c_driver = {
 	.driver = {
 		.name = SLAVE_DEVICE_NAME,
 		.owner = THIS_MODULE,
+		.of_match_table = MPU_of_match,
 	},
-	.of_match_table = MPU60x0_match_table,
+	.id_table = MPU_id_table,
 	.probe = MPUProbe,
 	.remove = MPURemove,
 
@@ -320,7 +321,7 @@ int initI2C(void){
 	int ret = -1;
 	
 	// Create adaptor to get access to I2C bus
-	my_i2c_adapter = i2c_get_adapter(I2C_BUS_AVAILABLE);
+	my_i2c_adapter = i2c_get_adapter(I2C_BUS);
 	if(my_i2c_adapter != NULL){
 		my_i2c_client = i2c_new_device(my_i2c_adapter, &my_i2c_board_info);
 		if(my_i2c_client != NULL){

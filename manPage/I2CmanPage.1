@@ -87,8 +87,13 @@ rungstroem@gmail.com
 .RE
 for more information, bug reports or anything related to the program.
 
+.SH CONFIG
+To use the driver the "dtparam=i2c_arm=on" should be set in the [/boot/config.txt] file. 
+
 .SH AUTO-LOAD
-Initializing the device driver can be done in many different ways. 
+Initializing the device driver can be done in many different ways.
+Using the device-tree overlay I2CDriver.dtso the device driver can be autoloaded upon boot of the kernel. 
+To do this the overlay is copied to the /boot/overlays folder  
 
 Using device tree.
 .br 
