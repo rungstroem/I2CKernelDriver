@@ -8,3 +8,14 @@ to compile device tree file use:
 
 to see running device tree
 	dtc -I fs /proc/device-tree
+
+to make modprobe aware of the kernel module, copy it to /lib/modules/{kernel version}/drivers and run 
+	depmod -a
+Modprobe is the automatic module loading mechanism and it depends on an entry for the "compatible" string in the file "modules.ofmap"
+	This file is located at /lib/modules/{kernel version}/modules.ofmap
+
+To see the output of the device tree loader use
+	sudo vcdbg log msg
+
+The device tree overlay should be places at
+	/boot/overlays

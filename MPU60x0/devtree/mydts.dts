@@ -10,7 +10,7 @@
 			#size-cells = <0>;
 			status = "okay";
 			clock-frequency = <100000>;
-			I2CDriver@68{
+			I2CDriver:I2CDriver@68{
 				compatible = "Sparkfun MPU6050";
 				reg = <0x68>;	
 			};

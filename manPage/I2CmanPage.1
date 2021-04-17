@@ -88,12 +88,19 @@ rungstroem@gmail.com
 for more information, bug reports or anything related to the program.
 
 .SH CONFIG
-To use the driver the "dtparam=i2c_arm=on" should be set in the [/boot/config.txt] file. 
-
+To use the driver the "dtparam=i2c_arm=on" or "dtparam=i2c1=on" should be set in the [/boot/config.txt] file.
+	Usually if a device, specified as a device tree file, uses an interface it should not be needed to set it with dtparam, but in the case of the raspberry pi it may still be needed. 
+The device tree overlay should be initialized with the "dtoverlay={name}" in the [/boot/config.txt] file.
+	The device tree overlay is the compiled ".dtbo" file.
 .SH AUTO-LOAD
 Initializing the device driver can be done in many different ways.
+
 Using the device-tree overlay I2CDriver.dtso the device driver can be autoloaded upon boot of the kernel. 
 To do this the overlay is copied to the /boot/overlays folder  
+
+The automatic loading mechanism "modprobe" depends on entry for the "compatible" string in the "modules.ofmap" file usually located in "/lib/modules/{kernel version}/kernel/modules.ofmap". To generate this entry the easiest solution is to copy the kernel module binary to "/lib/modules/{kernel version}/drivers/" and then executing [depmod -a].
+The module can be now be loaded by issuing command:
+	modprobe {module name} 
 
 Using device tree.
 .br 
