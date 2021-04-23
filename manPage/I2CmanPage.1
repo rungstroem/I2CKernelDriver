@@ -7,22 +7,43 @@
 ." Sections are created with .SH for section header
 
 .SH NAME
-I2CKernelModule
-Insert very short description of what the program does here
+I2CKernelModule\- Interfaces the I2C hardware with userspace through a file device. The module is made for the MPU60x0 line of IMUs.
 
 .SH SYNOPSIS
-This describes the syntex used to run the program from the command line
+The driver interfaces the MPU60x0 series IMUs with the Raspberry PI and provides an interface for userspace programs. 
+The interface consists of a file device that can be written to and read from with the simple command-line tools "echo" and "cat", or by opening the device in a program. 
+The driver simplifies interfacing with the IMUs by defining a set of commands that will either read from or write to specific registers on the IMU without the user having to know about the specific register addresses .
+
+
+
+The driver configures and interfaces with the I2C hardware present on the Raspberry PI. 
+The module configures and interfaces with the I2C-1 / I2C-arm hardware present on the BMC2835 SOC that the Raspberry PI uses. 
+Options are left out as the module is supposed to load with the kernel and automatically detect supported hardware upon boot. 
 
 .SH DESCRIPTION
 This is where the programs functionality is described
 
+Through device-tree the GPIO header pins 3 and 5 are configured for I2C 
+
+.SH CONFIGURATION
+I2C interface 1 is
 .SH EXAMPLE
-
-.SH OPTIONS
-Supported commands used extracting and writing value to the IMU
-
+.I "echo TEMPH > /dev/I2CDriver"
 .RS
-.B getID 
+Commands the module to transmit the address of the temperature high byte. 
+.RE
+Following by:
+.br
+.I "cat /dev/I2CDriver"
+.RS
+Commands module to tranmit a read command to the I2C device. 
+This will result in the I2C device transmitting back the value stored in the previously pointed to register.
+.RE
+
+.SH COMMANDS
+Supported commands used when writing to and reading from the IMU
+.RS
+.BR getID
 - returns the IMUs' id 
 
 .B TEMPH 
@@ -32,44 +53,44 @@ Supported commands used extracting and writing value to the IMU
 - returns the low byte of the temperature sensors' measurement
 
 .B ACCXH 
-- 
+- Returns the high byte of the accelerometer's X-axis measurement 
 
 .B ACCXL 
-- 
+-Returns the low byte of the accelerometer's X-axis measurement
 
 .B ACCYH 
--
+- Returns the high byte of the accelerometer's Y-axis measurement
 
 .B ACCYL 
-- 
+- Returns the low byte of the accelerometer's Y-axis measurement
 
 .B ACCZH 
-- 
+- Returns the high byte of the accelerometer's Z-axis measurement
 
 .B ACCZL 
-- 
+- Returns the low byte of the accelerometer's Z-axis measurement
 
 .B GYRXH 
-- 
+- Returns the high byte of the gyroscope's angular velocity around the X-axis
 
 .B GYRXL 
-- 
+- Returns the low byte of the gyroscope's angular velocity around the X-axis
 
 .B GYRYH 
-- 
+- Returns the high byte of the gyroscope's angular velocity around the Y-axis
 
 .B GYRYL 
-- 
+- Returns the low byte of the gyroscope's angular velocity around the Y-axis
 
 .B GYRZH 
-- 
+- Returns the high byte of the gyroscope's angular velocity around the Z-axis
 
 .B GYRZL 
-- 
+- Returns the low byte of the gyroscope's angular velocity around the Z-axis
 .RE
 
-This is where the options, that the program takes, functionallity is described.
-
+.SH OPTIONS
+EAch command takes options in the form of values
 .SH BUGS
 Known bugs. 
 Unloading the module from the kernel using rmmod does not seem to work as the module cannot be loaded again using insmod afterwards.
@@ -116,6 +137,12 @@ to a device upon load, as long as the device is present.
 The difference between using explicit and device tree declaration is the need for stating all devices in the i2c_board_info within the source code for the driver as compared to stating the devices in the device tree. Using the device tree approach aliviates the need for recompilation of
 the drivers' source code, when a new device has to be added. This makes it easier to distribute the driver as a binary through a package manager.
 
+.SH DETAILED DESCRIPTION OF WORK
+This module was originally designed for use with a specialized, I2C-enabled robot controller where the module would handle interfacing with the controller. However, towards the end of the course the project was scrapped and the controller as well as source code could not be retrieved. Given these implications the modules' command interpreter and the I2C initializations' probe function is rewritten to work the I2C-enabled MPU6050 IMU. 
+
+.SH FUTURE WORK
+For future work the equations for calculating the temperatur should be implemented as a function that upon return, returns the correct value in degree C and decimal instread of hexadecimal. Likewise the measurements for the accelerometer and gyroscope should be returned as decimal values instead of the user having to read 2 different registers and combining them to get the actual acceleration of angular velocity values.
+
 .SH "SEE ALSO"
 .RS
 https://www.kernel.org/doc/html/latest/i2c/summary.html
@@ -134,5 +161,8 @@ https://elinux.org/Device_Tree_Usage
 
 ." More information on man page writing on http://www.linuxhowtos.org/System/creatingman.htm
 ." and http://anaturb.net/create_man_p.htm
+
+." https://www.systutorials.com/docs/linux/man/7-man-pages/
+This page is very resourcefull
 
 ." to "compile" the man page use groff -man -Tascii ./I2CmanPage.1 | less 
