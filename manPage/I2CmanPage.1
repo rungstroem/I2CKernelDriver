@@ -7,26 +7,24 @@
 ." Sections are created with .SH for section header
 
 .SH NAME
-I2CKernelModule\- Interfaces the I2C hardware with userspace through a file device. The module is made for the MPU60x0 line of IMUs.
+I2CKernelModule \- Interfaces the I2C hardware with userspace through a file device. The module is made for the MPU60x0 line of IMUs.
 
 .SH SYNOPSIS
-The driver interfaces the MPU60x0 series IMUs with the Raspberry PI and provides an interface for userspace programs. 
-The interface consists of a file device that can be written to and read from with the simple command-line tools "echo" and "cat", or by opening the device in a program. 
-The driver simplifies interfacing with the IMUs by defining a set of commands that will either read from or write to specific registers on the IMU without the user having to know about the specific register addresses .
-
-
-
-The driver configures and interfaces with the I2C hardware present on the Raspberry PI. 
-The module configures and interfaces with the I2C-1 / I2C-arm hardware present on the BMC2835 SOC that the Raspberry PI uses. 
-Options are left out as the module is supposed to load with the kernel and automatically detect supported hardware upon boot. 
+echo 
+.I COMMAND
+> dev/I2CDriver
+.br
+cat /dev/I2CDriver
 
 .SH DESCRIPTION
-This is where the programs functionality is described
+I2CKernelModule is a device driver for interfacing  with the MPU60x0 series IMUs. The driver can be used with any system that features dedicated I2C hardware, like the Raspberry PI and in general most SOCs. 
+Upon load the driver automatically enables the first I2C interface hardware, I2C-1 / I2C-arm, that is present on most SOCs and makes the appropriate configurations. Different SOCs use different physical connections to the hardware, it is therefore necessary to consult the SOC's datascheet for correct wiring of the IMU. 
 
-Through device-tree the GPIO header pins 3 and 5 are configured for I2C 
+The driver simplifies interfacing with the IMUs by making itself available as a file device in the /dev folder. The file device ensures that userspace programs have access to the kernels' I2C sub-system. Users may read from or write to the file device either through simple command-line tools, like "echo" and "cat", or may open the device as a file in a seperate program. 
+Besides this the driver further simplifies interfacing with the IMUs by defining a set of commands that will instruct the I2C hardware to either read from or write to specific registers on the IMU, without the user having to know about the specific register addresses. 
 
-.SH CONFIGURATION
-I2C interface 1 is
+The driver may either be compiles with the kernel or inserted at run time. For systems utilizing the device tree structure a device tree overlay is specifically created for the driver, that will handle setup of I2C and load of the module on boot. 
+
 .SH EXAMPLE
 .I "echo TEMPH > /dev/I2CDriver"
 .RS
@@ -36,12 +34,16 @@ Following by:
 .br
 .I "cat /dev/I2CDriver"
 .RS
-Commands module to tranmit a read command to the I2C device. 
-This will result in the I2C device transmitting back the value stored in the previously pointed to register.
+Commands the module to tranmit a read command to the I2C device. 
+Results in the I2C device transmitting back the value stored in the previously pointed to register.
 .RE
 
+.SH CONFIGURATION
+The driver configures the I2C-1 / I2C-arm interface for 100kHz transfer speed and setup the interface for connunication with the I2C-slave address 0x68. On the Raspberry PI SOC the I2C-1 hardware interface is connected to the GPOI pins 3 and 5.
+
 .SH COMMANDS
-Supported commands used when writing to and reading from the IMU
+Supported commands used when writing to and reading from the IMU. 
+
 .RS
 .BR getID
 - returns the IMUs' id 
@@ -89,8 +91,61 @@ Supported commands used when writing to and reading from the IMU
 - Returns the low byte of the gyroscope's angular velocity around the Z-axis
 .RE
 
+Each command takes arguments in the form of decimal values. When specifying an argument with a command, the argument is transmittet to the I2C-slave device with an I2C write command. The I2C-slave device then overwrites the content of the respective register with the argument.
+.br
+Usefull for resetting a measurement.
+
 .SH OPTIONS
-EAch command takes options in the form of values
+.B -a, --address XX 
+.br
+Specify alternative I2C-slave address. replace XX with address.
+.br
+Option is usable for I2C-slave devices with different addressing. 
+
+.B -f, --freq 100 / 400
+.br
+Changes the frequency of the I2C hardware. 100 for 100kHz, 400 for 400kHz. 
+.br
+Default transfer frequency is 100kHz. If I2C-slave device supports fast data transfer then set option argument to 400 for 400kHz high speed data transfer.
+
+https://tldp.org/LDP/lkmpg/2.6/html/x323.html	Documentation for passing command line arguments to kernel modules
+An option is when the driver is instructed to do a specific task - Not applicable
+
+.SH CONFIG
+To use the driver the "dtparam=i2c_arm=on" or "dtparam=i2c1=on" should be set in the [/boot/config.txt] file.
+	Usually if a device, specified as a device tree file, uses an interface it should not be needed to set it with dtparam, but in the case of the raspberry pi it may still be needed. 
+The device tree overlay should be initialized with the "dtoverlay={name}" in the [/boot/config.txt] file.
+	The device tree overlay is the compiled ".dtbo" file.
+.SH AUTO-LOAD
+Initializing the device driver can be done in many different ways.
+
+Using the device-tree overlay I2CDriver.dtso the device driver can be autoloaded upon boot of the kernel. 
+To do this the overlay is copied to the /boot/overlays folder  
+
+The automatic loading mechanism "modprobe" depends on entry for the "compatible" string in the "modules.ofmap" file usually located in "/lib/modules/{kernel version}/kernel/modules.ofmap". To generate this entry the easiest solution is to copy the kernel module binary to "/lib/modules/{kernel version}/drivers/" and then executing [depmod -a].
+The module can be now be loaded by issuing command:
+	modprobe {module name} 
+.br
+modprobe -r unloads module - equivalent to rmmod
+.br
+modprove
+.I module name
+loads a module present in the directory /usr/lib/{kernel version}/modules or /lib/modules/{kernel version}/kernel/modules.ofmap
+
+Using device tree.
+.br 
+Device trees are a uniform way of loading the correct device driver when a device appears at the I2C bus, or any bus, on kernel boot. The purpose is to allow multiple devices of the same type to utilize the same driver without specifying all of these devices in the driver source code. 
+This is especially usefull when different manufactures produce essecentially the same device, but the devices' address may for example be changed. Instead of updating the device driver with all different device addresses, the device tree registers the type of device connected at boot, 
+and assigns/loads the appropriate driver. 
+
+Using explicit declaration.
+.br 
+Explicit declaration has all of the supported devices declared in the "struct i2c_board_info" structure using "I2C_BOARD_INFO". This structure explicitely states all supported devices name and address as well as other usefull information. The driver uses this structure to bind the driver 
+to a device upon load, as long as the device is present. 
+
+The difference between using explicit and device tree declaration is the need for stating all devices in the i2c_board_info within the source code for the driver as compared to stating the devices in the device tree. Using the device tree approach aliviates the need for recompilation of
+the drivers' source code, when a new device has to be added. This makes it easier to distribute the driver as a binary through a package manager.
+
 .SH BUGS
 Known bugs. 
 Unloading the module from the kernel using rmmod does not seem to work as the module cannot be loaded again using insmod afterwards.
@@ -108,34 +163,12 @@ rungstroem@gmail.com
 .RE
 for more information, bug reports or anything related to the program.
 
-.SH CONFIG
-To use the driver the "dtparam=i2c_arm=on" or "dtparam=i2c1=on" should be set in the [/boot/config.txt] file.
-	Usually if a device, specified as a device tree file, uses an interface it should not be needed to set it with dtparam, but in the case of the raspberry pi it may still be needed. 
-The device tree overlay should be initialized with the "dtoverlay={name}" in the [/boot/config.txt] file.
-	The device tree overlay is the compiled ".dtbo" file.
-.SH AUTO-LOAD
-Initializing the device driver can be done in many different ways.
 
-Using the device-tree overlay I2CDriver.dtso the device driver can be autoloaded upon boot of the kernel. 
-To do this the overlay is copied to the /boot/overlays folder  
+.SH WORK DESCRIPTION FOR COURSE EVALUATION
 
-The automatic loading mechanism "modprobe" depends on entry for the "compatible" string in the "modules.ofmap" file usually located in "/lib/modules/{kernel version}/kernel/modules.ofmap". To generate this entry the easiest solution is to copy the kernel module binary to "/lib/modules/{kernel version}/drivers/" and then executing [depmod -a].
-The module can be now be loaded by issuing command:
-	modprobe {module name} 
-
-Using device tree.
-.br 
-Device trees are a uniform way of loading the correct device driver when a device appears at the I2C bus, or any bus, on kernel boot. The purpose is to allow multiple devices of the same type to utilize the same driver without specifying all of these devices in the driver source code. 
-This is especially usefull when different manufactures produce essecentially the same device, but the devices' address may for example be changed. Instead of updating the device driver with all different device addresses, the device tree registers the type of device connected at boot, 
-and assigns/loads the appropriate driver. 
-
-Using explicit declaration.
-.br 
-Explicit declaration has all of the supported devices declared in the "struct i2c_board_info" structure using "I2C_BOARD_INFO". This structure explicitely states all supported devices name and address as well as other usefull information. The driver uses this structure to bind the driver 
-to a device upon load, as long as the device is present. 
-
-The difference between using explicit and device tree declaration is the need for stating all devices in the i2c_board_info within the source code for the driver as compared to stating the devices in the device tree. Using the device tree approach aliviates the need for recompilation of
-the drivers' source code, when a new device has to be added. This makes it easier to distribute the driver as a binary through a package manager.
+.SH INTRODUCTION
+The kernel module for the MPU60x0 IMUs is developed as the self-study project for the course LOE2.
+The problem revolves around learning how to write kernel software for the linux kernel. As an extension the documentation for the developed software is manual page, since manual pages are the standard way of documenting software on linux. To learn both kernel development and manpage writing severallll tools had to be learned. These involves the make system for compiling software, that is a requirement for compiling kernel modules. Also the structure of a kernel module needed to be learned, as the structure is very different from regular C program. The module has several entry functions that is called whenever an operation with the module is carried out. Besides this the setup of a file device was needed and how to interface with the kernels I2C sub-system. to load the module the modprobe system needed to be mastered. This is both used for manually loading the module, but also for automatic load of the module on startup. Besides the modprobe system, kernels compiled for SOCs often use device trees to specify what modules to load on boot. This is done because the kernel can then be compiled one time and the SOC specific modules that is needed is then loaded into the kernel at boot by the device tree. Using the device tree meant that an understanding of how one could interface with the device tree was needed. To use the device tree functionallity, a device tree overlay had to be written. The smart thing with the device tree overlay is that the setup of the I2C hardware can be taken care of by the device tree instead of the kernel module it self. 
 
 .SH DETAILED DESCRIPTION OF WORK
 This module was originally designed for use with a specialized, I2C-enabled robot controller where the module would handle interfacing with the controller. However, towards the end of the course the project was scrapped and the controller as well as source code could not be retrieved. Given these implications the modules' command interpreter and the I2C initializations' probe function is rewritten to work the I2C-enabled MPU6050 IMU. 
