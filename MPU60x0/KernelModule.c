@@ -240,12 +240,22 @@ static int dev_release(struct inode *inodep, struct file *filep){
 	return 0;
 }
 
+static long dev_ioctl(struct file *filep, unsigned int cmd, unsigned long arg){
+	// Empty for now
+}
+
+static int dev_uevent(struct device *device, struct kobj_uevent_env *env){
+	add_uevent_var(env, "DEVMODE=%#o", 0666);
+	return 0;
+}
+
 static struct file_operations fops={
 	.owner = THIS_MODULE,
 	.open = dev_open,
 	.read = dev_read,
 	.write = dev_write,
 	.release = dev_release,
+	.unlocked_ioctl = dev_ioctl,
 };
 
 // Runs when module is inserted in kernel (insmod)
@@ -360,6 +370,7 @@ int initDeviceFile(void){
 		unregister_chrdev_region(dev, 1);
 		return -1;
 	}
+	deviceFileClass->dev_uevent = dev_uevent;	// Set permissions - permissions defined in function dev_uevent().
 	
 	//Create device file
 	if( device_create(deviceFileClass, NULL, dev, NULL, "I2CDriver") == NULL ){
@@ -389,6 +400,7 @@ void unregisterDeviceFile(void){
 	//unregister_chrdev(major, DEVICE_NAME);
 	cdev_del( &c_dev );
 	device_destroy( deviceFileClass, dev );
+	class_unregister( deviceFileClass );
 	class_destroy( deviceFileClass );
 	unregister_chrdev_region(dev, 1);
 

@@ -21,25 +21,24 @@ I2CKernelModule is a device driver for interfacing  with the MPU60x0 series IMUs
 Upon load the driver automatically enables the first I2C interface hardware, I2C-1 / I2C-arm, that is present on most SOCs and makes the appropriate configurations. Different SOCs use different physical connections to the hardware, it is therefore necessary to consult the SOC's datascheet for correct wiring of the IMU. 
 
 The driver simplifies interfacing with the IMUs by making itself available as a file device in the /dev folder. The file device ensures that userspace programs have access to the kernels' I2C sub-system. Users may read from or write to the file device either through simple command-line tools, like "echo" and "cat", or may open the device as a file in a seperate program. 
-Besides this the driver further simplifies interfacing with the IMUs by defining a set of commands that will instruct the I2C hardware to either read from or write to specific registers on the IMU, without the user having to know about the specific register addresses. 
+Besides this the driver further simplifies interfacing with the IMUs by defining a set of commands that will instruct the I2C hardware to either read from or write to specific registers on the IMU, without the user having to know about specific register addresses. 
 
 The driver may either be compiles with the kernel or inserted at run time. For systems utilizing the device tree structure a device tree overlay is specifically created for the driver, that will handle setup of I2C and load of the module on boot. 
 
 .SH EXAMPLE
 .I "echo TEMPH > /dev/I2CDriver"
 .RS
-Commands the module to transmit the address of the temperature high byte. 
+The driver transmits the address of the temperature high byte register. 
 .RE
-Following by:
 .br
 .I "cat /dev/I2CDriver"
 .RS
-Commands the module to tranmit a read command to the I2C device. 
+The driver to tranmit a read command to the I2C device. 
 Results in the I2C device transmitting back the value stored in the previously pointed to register.
 .RE
 
 .SH CONFIGURATION
-The driver configures the I2C-1 / I2C-arm interface for 100kHz transfer speed and setup the interface for connunication with the I2C-slave address 0x68. On the Raspberry PI SOC the I2C-1 hardware interface is connected to the GPOI pins 3 and 5.
+The driver configures the I2C-1 / I2C-arm interface for standard 100kHz bus frequency and setup the interface for connunication with the I2C-slave address 0x68. On the Raspberry PI SOC the I2C-1 hardware interface is connected to the GPOI pins 3 and 5. On activation of the I2C hardware, the GPIO pin multiplexer assigns pins 3 and 5 to the I2C hardware. 
 
 .SH COMMANDS
 Supported commands used when writing to and reading from the IMU. 
@@ -109,7 +108,6 @@ Changes the frequency of the I2C hardware. 100 for 100kHz, 400 for 400kHz.
 Default transfer frequency is 100kHz. If I2C-slave device supports fast data transfer then set option argument to 400 for 400kHz high speed data transfer.
 
 https://tldp.org/LDP/lkmpg/2.6/html/x323.html	Documentation for passing command line arguments to kernel modules
-An option is when the driver is instructed to do a specific task - Not applicable
 
 .SH CONFIG
 To use the driver the "dtparam=i2c_arm=on" or "dtparam=i2c1=on" should be set in the [/boot/config.txt] file.
@@ -168,7 +166,35 @@ for more information, bug reports or anything related to the program.
 
 .SH INTRODUCTION
 The kernel module for the MPU60x0 IMUs is developed as the self-study project for the course LOE2.
-The problem revolves around learning how to write kernel software for the linux kernel. As an extension the documentation for the developed software is manual page, since manual pages are the standard way of documenting software on linux. To learn both kernel development and manpage writing severallll tools had to be learned. These involves the make system for compiling software, that is a requirement for compiling kernel modules. Also the structure of a kernel module needed to be learned, as the structure is very different from regular C program. The module has several entry functions that is called whenever an operation with the module is carried out. Besides this the setup of a file device was needed and how to interface with the kernels I2C sub-system. to load the module the modprobe system needed to be mastered. This is both used for manually loading the module, but also for automatic load of the module on startup. Besides the modprobe system, kernels compiled for SOCs often use device trees to specify what modules to load on boot. This is done because the kernel can then be compiled one time and the SOC specific modules that is needed is then loaded into the kernel at boot by the device tree. Using the device tree meant that an understanding of how one could interface with the device tree was needed. To use the device tree functionallity, a device tree overlay had to be written. The smart thing with the device tree overlay is that the setup of the I2C hardware can be taken care of by the device tree instead of the kernel module it self. 
+The project problem revolves around learning how to write kernel software for the linux kernel. 
+As an extension the unix way for documenting software has to be explored and used for documenting the developed kernel module. 
+To learn both kernel development and manpage writing several tools had to be learned. These involves the make system for compiling software, that is a requirement for compiling kernel modules, and the Groff typesetting system. 
+Also the structure of a kernel module needed to be learned, as the structure is very different from regular C program.
+Besides this the setup of a file device is needed to interface userspace with the kernels I2C sub-system, and for a userfriendly experience a method for automatically loading the module is needed.
+
+The work accomplished throughout this project regarding the programming is described in the section
+.IR "KERNEL MODULE PROGRAMMING".
+Regarding the automatic loading of the module the work is described in the section
+.IR "AUTOLOAD".
+And the software documentation is described in section 
+.IR "MANUAL PAGE".
+
+.SH KERNEL MODULE PROGRAMMING
+A kernel module is a piece of software that extends the functionallity of the kernel. A module may either be compiled with the kernel as a static extension or loaded into a running kernel on demand. Modules that can be loaded on demand are called loadable modules and may either be loaded or unloaded from the kernel without the need for rebooting the system. 
+For programming a kernel module the only supported language is the ANSI C language, but the structure differs greatly from that of a standard C program.
+Any module must have at least the 2 following functions implemeted 
+.IR "init_module()"  and
+.IR "cleanup_module()".
+When the module is inserted the init_module() function is called. This function is typically used to register handlers for kernel level function.
+The cleanup_module() is called when the module is unloaded from the kernel. In this function every resource initialized with the init_module() function is reverted in order to free up the memory space that the module occupied.
+
+.SH DEVICE TREE
+
+.SH MANNUAL PAGE
+
+
+The module has several entry functions that is called whenever an operation with the module is carried out. 
+Besides this the setup of a file device is needed to interface userspace with the kernels I2C sub-system. to load the module the modprobe system needed to be mastered. This is both used for manually loading the module, but also for automatic load of the module on startup. Besides the modprobe system, kernels compiled for SOCs often use device trees to specify what modules to load on boot. This is done because the kernel can then be compiled one time and the SOC specific modules that is needed is then loaded into the kernel at boot by the device tree. Using the device tree meant that an understanding of how one could interface with the device tree was needed. To use the device tree functionallity, a device tree overlay had to be written. The smart thing with the device tree overlay is that the setup of the I2C hardware can be taken care of by the device tree instead of the kernel module it self. 
 Documenting with manpages meant that the industry standard layout of the manpage had to be followed. Depending on the software component being documented the manpage has slight changes to the "indhold". For games the manpage had to be correct category in the manpage database is category 7, where the correct category for drivers is category 4. Finally for manpages the correct way of compiling them was needed. This involved an interpreter called groff, that converts the written text to the actual manpage. 
 
 Lastly making the module accept options and arguments is completely different from regular C programs. However, a whole library for the kernel supports this. 
