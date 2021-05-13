@@ -110,39 +110,23 @@ Default transfer frequency is 100kHz. If I2C-slave device supports fast data tra
 https://tldp.org/LDP/lkmpg/2.6/html/x323.html	Documentation for passing command line arguments to kernel modules
 
 .SH CONFIG
-To use the driver the "dtparam=i2c_arm=on" or "dtparam=i2c1=on" should be set in the [/boot/config.txt] file.
-	Usually if a device, specified as a device tree file, uses an interface it should not be needed to set it with dtparam, but in the case of the raspberry pi it may still be needed. 
-The device tree overlay should be initialized with the "dtoverlay={name}" in the [/boot/config.txt] file.
-	The device tree overlay is the compiled ".dtbo" file.
+To enable the I2C hardware and use the driver the "dtparam=i2c_arm=on" or "dtparam=i2c1=on" should be set in the "/boot/config.txt" file.
+If autoloading with device tree is used, the previous parameter does not need to be set. Instead the device tree overlay should be initialized with the "dtoverlay={name}" in the config.txt filei, where name is the name is I2CDriver.
+.br
+The device tree overlay for this driver is called "I2CDriver.dtbo". This needs to be placed in the "/boot/overlays" directory.
+
 .SH AUTO-LOAD
-Initializing the device driver can be done in many different ways.
-
-Using the device-tree overlay I2CDriver.dtso the device driver can be autoloaded upon boot of the kernel. 
-To do this the overlay is copied to the /boot/overlays folder  
-
-The automatic loading mechanism "modprobe" depends on entry for the "compatible" string in the "modules.ofmap" file usually located in "/lib/modules/{kernel version}/kernel/modules.ofmap". To generate this entry the easiest solution is to copy the kernel module binary to "/lib/modules/{kernel version}/drivers/" and then executing [depmod -a].
-The module can be now be loaded by issuing command:
-	modprobe {module name} 
+Loading the device driver can be done in many different ways.
 .br
-modprobe -r unloads module - equivalent to rmmod
-.br
-modprove
-.I module name
-loads a module present in the directory /usr/lib/{kernel version}/modules or /lib/modules/{kernel version}/kernel/modules.ofmap
+The driver may be loaded with the command "insmod Kernelmodule.ko". This isnserts the module into the running kernel. To unload the module the command "rmmod Kernelmodule" can be used.
 
-Using device tree.
-.br 
-Device trees are a uniform way of loading the correct device driver when a device appears at the I2C bus, or any bus, on kernel boot. The purpose is to allow multiple devices of the same type to utilize the same driver without specifying all of these devices in the driver source code. 
-This is especially usefull when different manufactures produce essecentially the same device, but the devices' address may for example be changed. Instead of updating the device driver with all different device addresses, the device tree registers the type of device connected at boot, 
-and assigns/loads the appropriate driver. 
+Using the device-tree overlay "I2CDriver.dtso" the device driver can be autoloaded upon boot of the kernel. 
+To do this the overlay is copied to the "/boot/overlays" folder. 
+Autoloading with device-tree is dependent on modprobe.
 
-Using explicit declaration.
-.br 
-Explicit declaration has all of the supported devices declared in the "struct i2c_board_info" structure using "I2C_BOARD_INFO". This structure explicitely states all supported devices name and address as well as other usefull information. The driver uses this structure to bind the driver 
-to a device upon load, as long as the device is present. 
-
-The difference between using explicit and device tree declaration is the need for stating all devices in the i2c_board_info within the source code for the driver as compared to stating the devices in the device tree. Using the device tree approach aliviates the need for recompilation of
-the drivers' source code, when a new device has to be added. This makes it easier to distribute the driver as a binary through a package manager.
+Using modprobe. The module is places in the "/lib/modules/{kernel version}/drivers/" and the command "depmod -a" is issued.
+The module can now be inserter by calling "modprobe {name}", where name is the name of the module.
+The module may be unloaded with the command "modprobe -r {name}".
 
 .SH BUGS
 Known bugs. 
@@ -170,7 +154,7 @@ The project problem revolves around learning how to write kernel software for th
 As an extension the unix way for documenting software has to be explored and used for documenting the developed kernel module. 
 To learn both kernel development and manpage writing several tools had to be learned. These involves the make system for compiling software, that is a requirement for compiling kernel modules, and the Groff typesetting system. 
 Also the structure of a kernel module needed to be learned, as the structure is very different from regular C program.
-Besides this the setup of a file device is needed to interface userspace with the kernels I2C sub-system, and for a userfriendly experience a method for automatically loading the module is needed.
+Besides this the setup of a char device is needed to interface userspace with the kernels I2C sub-system, and for a userfriendly experience a method for automatically loading the module is needed.
 
 The work accomplished throughout this project regarding the programming is described in the section
 .IR "KERNEL MODULE PROGRAMMING".
@@ -180,30 +164,182 @@ And the software documentation is described in section
 .IR "MANUAL PAGE".
 
 .SH KERNEL MODULE PROGRAMMING
-A kernel module is a piece of software that extends the functionallity of the kernel. A module may either be compiled with the kernel as a static extension or loaded into a running kernel on demand. Modules that can be loaded on demand are called loadable modules and may either be loaded or unloaded from the kernel without the need for rebooting the system. 
-For programming a kernel module the only supported language is the ANSI C language, but the structure differs greatly from that of a standard C program.
+A kernel module is a piece of software that extends the functionallity of the kernel. A module may either be compiled with the kernel as a static extension or loaded into a running kernel on demand. Modules that can be loaded on demand are called loadable modules and may be loaded or unloaded from the kernel without the need for rebooting the system. 
+For programming a kernel module the only supported language is ANSI C, but the structure greatly differs from that of a standard C program.
+.br
 Any module must have at least the 2 following functions implemeted 
 .IR "init_module()"  and
 .IR "cleanup_module()".
 When the module is inserted the init_module() function is called. This function is typically used to register handlers for kernel level function.
-The cleanup_module() is called when the module is unloaded from the kernel. In this function every resource initialized with the init_module() function is reverted in order to free up the memory space that the module occupied.
+The cleanup_module() is called when the module is unloaded from the kernel. In this function every resource initialized with the init_module() function should be reverted in order to free up the memory that the module occupied.
 
-.SH DEVICE TREE
+.SH "CHAR DEVICE"
+In UNIX, special hardware devices are grouped in the /dev directory where users will be able to interact with them.
+A character device "char device" is one such device. Generally char devices are hardware that does not deal with large amounts of data and does not frequently query data from the disk [1].
+The I2C system perfectly fits this description and the kernel module is therefore implemented as a driver for a char device.
+.br
+The operating system allows interaction with the driver through system calls. 
+The struct file_opertations defines the implementation of the system calls that the driver supports. Implementing a system call is a matter of defining a function that is executed when a specific syscall is received. For this driver the syscalls "read", write", "open" and "release" are used.
+The function for the open syscall handles access to the driver. The idea is that only one program can utilize the driver at a time to avoid data conflicts.
+The function therefore counts the number of times the driver is opened and returns the EBUSY error code if it is opened more than once.
+.br
+The release syscall function is executes when the program using the module releases it. The function only decrements the number of times the driver is opened, so a new program can open the driver. 
+.br
+The write syscall function copies the data written to the driver from userspace memory to kernel space memory through the kernel function "get_user()".
+.br 
+The function handling the read syscall copies data from kernel space to userspace memory through the function "put_user()". The functions for the read and write syscalls are the only connection between the userspace programs and the driver. 
 
-.SH MANNUAL PAGE
+
+Registering the driver with the OS is handled through the init_module() function and is therefore executes when the module is inserted into the kernel.
+First the major and minor numbers needs to be set. The major needs to be unique since it identifies the driver associated with the device. The minor is used to differentiate between several devices that the driver may control. 
+To make sure that this driver is not assigned an already used major, the major and minor are assigned dynamically with the function "alloc_chrdev_region()". 
+This function takes a base minor and how many minor numbers to reserve for devices, and returns a pointer to the structure "dev_t". 
+The structure dev_t now contains dynamically generated major and minor numbers. For this driver the base minor is 0 and 0 extra minor numbers are reserved.
+
+To register the char device with the system, first a pointer to the struct "class" is created with the function "class_create()". The class struct contains various data concerning the char device, but for this driver the important information is the owner of the module, the name of the module and the file permissions.
+The owner is often the module itself which is also true for this module.
+Users need read and write access and therefore the file permissions is set to 666 with the help of uevent, through the function call "add_uevent_var()".
+The pointer to the class structure is afterwards used in the function call device_create().
+Upon success, device_create() creates the file in the /dev directory with the data in the class struct, and returns a pointer to the device. 
+At this stage the pointer is only used to verify the success of the function call and is otherwise ignored, however the pointer may be used to create any further files related to the driver. 
+.br
+Now the cdev structure is initialized with the file operations that this driver supports, the syscalls defined in the file_operations structure, through the function call "cdev_init()".
+After this the char device can be added to the kernel with the function call "cdev_add()". This takes the cdev structure and what major and minor to assiciate the char device with. The function is therefore given a pointer to the dev_t structure. 
+If cdev_add() succesfully executes, the character device is now created and can be accessed from userspace.
+
+To clean up the memory space when the module is unloaded, the cleanup_module() function has to undo everything initialized in the init_module() function.
+First the cdev structure, created with the cdev_init() function, is deleted with the function call "cdev_del()". This function is given a pointer to the cdev structure. Next the device in the /dev directory is destroyed with the function call "device_destroy()". Afterwards the class structure is unregistered with the kernel and destroyed. This is done with the function calls "class_unregister()" and "class_destroy()". At last the allocated major and minor numbers are released with the function call "unregister_chrdev_region()" [2]. 
+.br
+This marks the end of the work with the char device. The next topic revolves around the I2C sub-system.
+.br
 
 
-The module has several entry functions that is called whenever an operation with the module is carried out. 
-Besides this the setup of a file device is needed to interface userspace with the kernels I2C sub-system. to load the module the modprobe system needed to be mastered. This is both used for manually loading the module, but also for automatic load of the module on startup. Besides the modprobe system, kernels compiled for SOCs often use device trees to specify what modules to load on boot. This is done because the kernel can then be compiled one time and the SOC specific modules that is needed is then loaded into the kernel at boot by the device tree. Using the device tree meant that an understanding of how one could interface with the device tree was needed. To use the device tree functionallity, a device tree overlay had to be written. The smart thing with the device tree overlay is that the setup of the I2C hardware can be taken care of by the device tree instead of the kernel module it self. 
-Documenting with manpages meant that the industry standard layout of the manpage had to be followed. Depending on the software component being documented the manpage has slight changes to the "indhold". For games the manpage had to be correct category in the manpage database is category 7, where the correct category for drivers is category 4. Finally for manpages the correct way of compiling them was needed. This involved an interpreter called groff, that converts the written text to the actual manpage. 
 
-Lastly making the module accept options and arguments is completely different from regular C programs. However, a whole library for the kernel supports this. 
+.SH "I2C SUB-SYSTEM"
+This is also a test
 
-.SH DETAILED DESCRIPTION OF WORK
-This module was originally designed for use with a specialized, I2C-enabled robot controller where the module would handle interfacing with the controller. However, towards the end of the course the project was scrapped and the controller as well as source code could not be retrieved. Given these implications the modules' command interpreter and the I2C initializations' probe function is rewritten to work the I2C-enabled MPU6050 IMU. 
+
+
+.SH AUTOLOAD
+A driver for a device is only useable when loaded into the kernel. For a desktop system loading a driver may be more of an inconvenience than an actual problem, but for an embedded system it may completely ruin the functionallity. 
+In a situation where an embedded system is suddenly rebooted, it should automatically load the necessary drivers. 
+.br
+To do this several solutions are available. For example the driver can be compiled with the kernel, but that involves compiling the kernel for each new system that needs the driver. 
+Otherwise loading the driver with modprobe is a solution, but for embedded systems the use of device trees has become the standard way.
+.br
+For this project the device tree approach has been explored. 
+
+A device tree is a description of a systems hardware. At a bare minimum it contains the identifier for the systems CPU, memory configuration and necessary peripherals. 
+The device tree represents hardware as a hierarchy of nodes with each node containing the properties of the node and potential subnodes. 
+The device tree can be extended by adding the changes to the tree and recompiling it, but it may also be extended by device tree overlays. 
+At boot, different device tree overlays can be loaded along side the standard device tree, thereby extending the tree without the need for recompilation.
+.br
+On the Raspberry PI the I2C system has its own node. This is extended with a device tree overlay that loads the developed driver if the I2C hardware can be activated. 
+.br
+The device tree overlay is written with a C like syntax and saved as a .dts file.
+This is then compiled with the device tree compiler [dtc] via the following command. [dtc -@ -Hepapr -I dts -O dtb -o MyI2C.dtbo MydevTree.dts]. 
+The "-@" option allows the compilation eventhough the overlay has unresolved reference. This is needed as we are refering to a node in the standard device tree. 
+The "-Hepapr" option just removes some clutter. 
+The compiled overlay can now be put into the /boot/overlays directory. To the config file the parameter "dtoverlay=MyI2C" has to be added and afterwards the device tree overlay is loaded upon boot. 
+
+Besides version and plugin statements, the first parameter in the device tree overlay is the list of compatible hardware. 
+Since the target is the Raspberry PI 2B the compatible hardware is the "bmc2835" SOC on the PI.
+.br
+In the device tree overlay fragments are used to target nodes and subnodes in the standard tree. 
+For this project only one fragment is needed. 
+Within the fragment the I2C hardware is targeted with the command "target = <&i2c-1>;". 
+Afterwards the "__overlay__" block states the changes to the target. 
+Within the __overlay__ block the I2C hardware is activated by setting the "status=okay" parameter. Thereafter the initial frequency of the bus is set to 100kHz with the "clock-frequency=<100000>" parameter. This may later be changed throught the driver it self. 
+Lastly a subnode that refers to the developed driver is specified by including "I2CDriver:I2CDriver@68" in the __overlay__.  
+.br
+Within the subnode another compatible parameter is used to bind the subnode, and therefore the I2C hardware, with the driver. 
+The OS uses the compatible variable to search for drivers that fits the specified hardware. 
+.br
+The driver has to identify it self by including a special struct that specifies what hardware it is compatible with.
+This is the "of_device_id" struct.
+It is not important what the name of the compatible devices are, only that the compatible parameter in the device tree overlay is equal to the ".compatible" variable in the of_device_id struct.
+Lastly the address of the IMU is stated in the subnode with the "reg=<0x68>". This sets up the I2C hardware for the correct address, but may again be changed through the driver it self [3]. 
+
+The mechanism that automatically loads the module is "modprobe". For modprobe to know what drivers are available, the driver binary is placed in the "/lib/modules/{kernel version}/drivers". 
+Now the command "depmod -a" is issued. This command adds an entry to the "modules.ofmap" file, located in "/lib/modules/{kernel version}/kernel/" directory.
+It is dependent on the .compatible parameter in the driver to create this entry. 
+When the device tree overlay is loaded it calls modprobe with the compatible parameter. Modprobe searches the modules.ofmap file for a matching entry and if it exists, modprobe is now able to load the correct driver. 
+.br
+Adding an entry to modprobe has the added benefit that the driver may be loaded and unloaded by issuing the commands "modprobe {driverName}" and "modprobe -r {driverName}", respectively. 
+
+
+At this point the device tree will be able to load the driver automatically. 
+
+
+
+.SH MANUAL PAGE
+The manpages are an easy accessible database of manuals always present any UNIX system. The manuals are accessible through the "man" command.
+
+manpages are categorized into sections, ranging from 1 to 9, where each section contains manuals for the same kind of software.
+For this manpage section 4 is the correct section, since section 4 contains manuals for devices or special files in the "/dev" directory. 
+To call a manpage from a specific section the name of the page should be followed by a ".#" where # is the section number. 
+For this manpage the command would be "man I2CKernelModule.4". 
+
+With the correct section defined a text processor is needed. Groff is GNU's implementation of the old "runoff" text processor found on early UNIX systems.
+Groff is an important part of writing manpages, because of its ability to produce plain ascii text as well as html, standard documents and articles.
+The abilities of groff makes it easy to produce text for online viewing, such as a webpageis, or viewing on even the simplest devices, such as the terminal.
+
+As with any other text processor, groff requires a special language to describe how the text should be processed. 
+For this manpage a few simple commands is used. ".TH" for heading, ".SH" for section, ".br" for line break, ".RS" for relative indent start followed by ".RE" for relative indend end, ".B" for bold text and ".I" for italic text (usually shown as underline).
+
+With the text processing handled, the structure of the manpage needs to be defined. 
+.br
+The manpage starts with the heading that includes the name and section number of the page. The ".TH" command automatically inserts the name of the section.
+Besides this the version number of the program may be given to the ".TH" command, that inserts the verion at the bottom of the page. 
+.br
+The only required section is the name section, but it is common to include the following sections in the same order. 
+.br
+The NAME section contains the name of the program and the shortest possible description of it functionality. 
+.br
+In the SYNOPSIS sention a short overview of available program options is given. This includes how the options are given. 
+.br
+The DESCRIPTION section provides an elaborate description of why the program is usefull. 
+.br
+The EXAMPLE section should give an overview of how to use the program with command and options.
+.br
+The OPTIONS section is usually included as many programs accept options of some sort. This section lists all available options. 
+.br
+The BUGS section describes what limitations, or inconveniences that might exist. This section is often remaned to TO DO.
+.br
+The AUTHOR section is the last common section. It states who wrote the program and who is maintaining it as well as contact information. 
+.br
+For section 4 type programs, or drivers, it common to also include a CONFIG section that describes any prior configurations needed for the driver to work, and a COMMANDS section that lists command that may be used with the driver after it is loaded. 
+
+When the appropriate section is created the manpage needs to be formatted. To format the page for plain ascii using groff the following command is issued.
+"groff -man -Tascii ./{name}" where name is the name of the written manpage text file BUGS section describes what limitations, or inconveniences that might exist. This section is often remaned to TO DO.
+.br
+The AUTHOR section is the last common section. It states who wrote the program and who is maintaining it as well as contact information. 
+.br
+For section 4 type programs, or drivers, it common to also include a CONFIG section that describes any prior configurations needed for the driver to work, and a COMMANDS section that lists command that may be used with the driver after it is loaded. 
+
+When the appropriate section is created the manpage needs to be formatted. To format the page for plain ascii using groff the following command is issued.
+"groff -man -Tascii ./{name}" where name is the name of the written manpage text file. The option -man instructs groff to format the text as a manpage with section highlighting, indentation and correct heading.  
+
+.SH IMPLICATIONS
+This module was originally designed for use with a specialized, I2C-enabled robot controller where the module would handle interfacing with the controller. i
+However, towards the end of the course the project was scrapped and the controller as well as source code could not be retrieved. 
+Given these implications the modules' command interpreter and the device initializing probe function is rewritten to work with the I2C-enabled MPU60x0 IMUs. 
 
 .SH FUTURE WORK
 For future work the equations for calculating the temperatur should be implemented as a function that upon return, returns the correct value in degree C and decimal instread of hexadecimal. Likewise the measurements for the accelerometer and gyroscope should be returned as decimal values instead of the user having to read 2 different registers and combining them to get the actual acceleration of angular velocity values.
+
+.SH REFERENCES
+[1] - The Linux Kernel
+.br
+https://linux-kernel-labs.github.io/refs/heads/master/labs/device_drivers.html
+.br
+[2] - Simple Linux character device driver
+.br
+https://olegkutkov.me/2018/03/14/simple-linux-character-device-driver/
+.br
+[3] - Device Tree, overlays, and parameters
+https://www.raspberrypi.org/documentation/configuration/device-tree.md#part3.5
+.br
 
 .SH "SEE ALSO"
 .RS
